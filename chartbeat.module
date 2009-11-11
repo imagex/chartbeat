@@ -1,0 +1,61 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_menu().
+ */
+function chartbeat_menu() {
+  $items['admin/settings/chartbeat'] = array(
+    'title' => 'Chartbeat',
+    'description' => 'Change the setting configuration when using Chartbeat.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('chartbeat_admin_settings'),
+    'file' => 'chartbeat.admin.inc',
+    'access arguments' => array('administer site confirmation'),
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function chartbeat_init() {
+  $uid = variable_get('chartbeat_uid', '');
+  if (!empty($uid)) {
+    drupal_set_html_head('<script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>');
+  }
+}
+
+/**
+ * Implementation of hook_footer().
+ */
+function chartbeat_footer() {
+  $uid = variable_get('chartbeat_uid', '');
+  if (!empty($uid) && is_numeric($uid)) {
+    $config = drupal_to_js(array(
+      'uid' => (int)$uid,
+      'domain' => variable_get('chartbeat_domain', ''),
+    ));
+    $output = <<<EOT
+<script type="text/javascript">
+  var _sf_async_config=$config;
+  (function(){
+    function loadChartbeat() {
+      window._sf_endpt=(new Date()).getTime();
+      var e = document.createElement('script');
+      e.setAttribute('language', 'javascript');
+      e.setAttribute('type', 'text/javascript');
+      e.setAttribute('src',
+         (("https:" == document.location.protocol) ? "https://s3.amazonaws.com/" : "
+         "static.chartbeat.com/js/chartbeat.js");
+      document.body.appendChild(e);
+    }
+    var oldonload = window.onload;
+    window.onload = (typeof window.onload != 'function') ?
+       loadChartbeat : function() { oldonload(); loadChartbeat(); };
+  })();
+</script>
+EOT;
+    return $output;
+  }
+}
