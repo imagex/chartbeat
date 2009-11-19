@@ -11,7 +11,7 @@ function chartbeat_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('chartbeat_admin_settings'),
     'file' => 'chartbeat.admin.inc',
-    'access arguments' => array('administer site confirmation'),
+    'access arguments' => array('administer site configuration'),
   );
   return $items;
 }
