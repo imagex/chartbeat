@@ -10,10 +10,19 @@ function chartbeat_menu() {
     'description' => 'Change the setting configuration when using Chartbeat.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('chartbeat_admin_settings'),
+    'access arguments' => array('administer chartbeat settings'),
     'file' => 'chartbeat.admin.inc',
-    'access arguments' => array('administer site configuration'),
   );
   return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function chartbeat_perm() {
+  return array(
+    'administer chartbeat settings',
+  );
 }
 
 /**
