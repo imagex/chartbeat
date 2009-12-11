@@ -30,8 +30,12 @@ function chartbeat_perm() {
  */
 function chartbeat_init() {
   $uid = variable_get('chartbeat_uid', '');
-  if (!empty($uid)) {
+  if (is_numeric($uid)) {
     drupal_set_html_head('<script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>');
+    drupal_add_js(array('chartbeat' => array(
+      'uid' => (int)$uid,
+      'domain' => variable_get('chartbeat_domain', ''),
+    )), 'setting');
   }
 }
 
@@ -40,14 +44,10 @@ function chartbeat_init() {
  */
 function chartbeat_footer() {
   $uid = variable_get('chartbeat_uid', '');
-  if (!empty($uid) && is_numeric($uid)) {
-    $config = drupal_to_js(array(
-      'uid' => (int)$uid,
-      'domain' => variable_get('chartbeat_domain', ''),
-    ));
+  if (is_numeric($uid)) {
     $output = <<<EOT
 <script type="text/javascript">
-  var _sf_async_config=$config;
+  var _sf_async_config=Drupal.settings.chartbeat;
   (function(){
     function loadChartbeat() {
       window._sf_endpt=(new Date()).getTime();
