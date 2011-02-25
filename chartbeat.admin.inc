@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Menu callback for the String Overrides module to display its administration

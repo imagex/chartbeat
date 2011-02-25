@@ -1,4 +1,3 @@
-; $Id$
 name = Chartbeat
 description = Shows real-time traffic to your website using the third party Chartbeat service.
 package = Statistics
