@@ -31,7 +31,7 @@ function chartbeat_permission() {
  */
 function chartbeat_init() {
   $uid = variable_get('chartbeat_uid', '');
-  if (!empty($uid) && is_numeric($uid)) {
+  if (is_numeric($uid)) {
     // Add the header script to start the timer.
     drupal_add_html_head(array(
       '#tag' => 'script',
@@ -52,6 +52,11 @@ function chartbeat_init() {
 function chartbeat_page_alter(&$page) {
   $uid = variable_get('chartbeat_uid', '');
   if (!empty($uid)) {
+    // Make sure we're outputting a user ID instead of a user name.
+    if (!is_numeric($uid)) {
+      drupal_set_message(t('Your <em>Chartbeat User ID</em> must be a number. You can locate it within step two of adding a new website to track at <a href="@chartbeat">Chartbeat</a>.', array('@chartbeat' => 'http://chartbeat.com')), 'warning', FALSE);
+      return;
+    }
     $output = <<<EOT
 <script type="text/javascript">
   var _sf_async_config=Drupal.settings.chartbeat;

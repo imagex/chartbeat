@@ -7,7 +7,7 @@ function chartbeat_admin_settings() {
   $form['chartbeat_uid'] = array(
     '#type' => 'textfield',
     '#title' => t('User ID'),
-    '#description' => t('The user ID associated with your <a href="@chartbeat">Chartbeat</a> account.', array('@chartbeat' => 'http://chartbeat.com')),
+    '#description' => t('The user ID associated with your <a href="@chartbeat">Chartbeat</a> account. You can locate it within step two of adding a new website to track at ChartBeat.', array('@chartbeat' => 'http://chartbeat.com')),
     '#default_value' => variable_get('chartbeat_uid', ''),
   );
   $form['chartbeat_domain'] = array(
