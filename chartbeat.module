@@ -1,4 +1,11 @@
 <?php
+/**
+ * @file
+ * The main module file.
+ *
+ * Contains menu, permission, init, and page alter functions.
+ */
+
 
 /**
  * Implements of hook_menu().
