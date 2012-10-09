@@ -38,6 +38,12 @@ function chartbeat_permission() {
  */
 function chartbeat_init() {
   $uid = variable_get('chartbeat_uid', '');
+  $canonical = variable_get('chartbeat_use_canonical', '0');
+  $canonical = !empty($canonical) ? TRUE : FALSE;
+
+  $cookies = variable_get('chartbeat_cookies', '0');
+  $cookies = !empty($cookies) ? FALSE : TRUE;
+
   if (is_numeric($uid)) {
     // Add the header script to start the timer.
     drupal_add_html_head(array(
@@ -49,6 +55,8 @@ function chartbeat_init() {
     drupal_add_js(array('chartbeat' => array(
       'uid' => (int)$uid,
       'domain' => variable_get('chartbeat_domain', ''),
+      'useCanonical' => $canonical,
+      'noCookies' => $cookies,
     )), 'setting');
   }
 }

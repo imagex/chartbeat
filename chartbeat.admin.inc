@@ -16,5 +16,30 @@ function chartbeat_admin_settings() {
     '#description' => t('The domain to be reporting from on your account.'),
     '#default_value' => variable_get('chartbeat_domain', ''),
   );
+
+  $form['chartbeat_options_advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['chartbeat_options_advanced']['chartbeat_use_canonical'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use Canonical'),
+    '#description' => t('If your site defines &lt;link rel=\'canonical\'
+      .../&gt;, you can set check this value to to make Chartbeat use the
+      canonical path instead of the actual URL.'),
+    '#default_value' => variable_get('chartbeat_use_canonical', '1'),
+  );
+  $form['chartbeat_options_advanced']['chartbeat_cookies'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use Cookies'),
+    '#description' => t('Customers who are subject to the EU e-Privacy Directive
+      can set this variable to prevent Chartbeat from using cookies. NOTE: By
+      using Chartbeat without cookies, you will be unable to see if a user is
+      new or returning.'),
+    '#default_value' => variable_get('chartbeat_cookies', '1'),
+  );
+
   return system_settings_form($form);
 }
