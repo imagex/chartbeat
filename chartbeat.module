@@ -61,6 +61,32 @@ function chartbeat_init() {
   }
 }
 
+function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
+  $form['admin']['nodes']['#header']['concurrent'] = array(
+    'data' => 'Concurrent Views',
+    'field' => '',
+  );
+
+  $api = variable_get('chartbeat_api_key', FALSE);
+
+  foreach($form['admin']['nodes']['#options'] as &$node) {
+
+    $href = $node['title']['data']['#href'];
+
+    if ($api) {
+      $host = $_SERVER['SERVER_NAME'];
+      $req_http = "http://api.chartbeat.com/live/summary/v3/?apikey=63efd52e820c972ffd5d77e5f0cf5cbd&host=$host&keys=read&path=$href";
+      $resp = drupal_http_request($req_http);
+      dpm($resp);
+    }
+    else {
+      $node['concurrent'] = '';
+    }
+  }
+  dpm($form);
+  dpm($_SERVER);
+}
+
 /**
  * Implements hook_page_alter().
  */
