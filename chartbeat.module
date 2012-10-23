@@ -80,15 +80,18 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
 
       if ($resp->code == 200) {
         $response = json_decode($resp->data, true);
-        dpm($response);
-        $num = (int)$response['read']['data']['sum'];
-        $node['concurrent'] = $num;
+        if (!empty($response)) {
+          $num = (int)$response['read']['data']['sum'];
+          $node['concurrent'] = $num;
+        } else {
+          $node['concurrent'] = 0;
+        }
       } else {
-        $node['concurrent'] = '';
+        $node['concurrent'] = 'n/a';
       }
     }
     else {
-      $node['concurrent'] = '';
+      $node['concurrent'] = 'n/a';
     }
   }
 }
