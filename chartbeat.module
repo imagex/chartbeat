@@ -38,6 +38,12 @@ function chartbeat_permission() {
  */
 function chartbeat_init() {
   $uid = variable_get('chartbeat_uid', '');
+  $canonical = variable_get('chartbeat_use_canonical', '0');
+  $canonical = !empty($canonical) ? TRUE : FALSE;
+
+  $cookies = variable_get('chartbeat_cookies', '0');
+  $cookies = !empty($cookies) ? FALSE : TRUE;
+
   if (is_numeric($uid)) {
     // Add the header script to start the timer.
     drupal_add_html_head(array(
@@ -49,8 +55,36 @@ function chartbeat_init() {
     drupal_add_js(array('chartbeat' => array(
       'uid' => (int)$uid,
       'domain' => variable_get('chartbeat_domain', ''),
+      'useCanonical' => $canonical,
+      'noCookies' => $cookies,
     )), 'setting');
   }
+}
+
+function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
+  $form['admin']['nodes']['#header']['concurrent'] = array(
+    'data' => 'Concurrent Views',
+    'field' => '',
+  );
+
+  $api = variable_get('chartbeat_api_key', FALSE);
+
+  foreach($form['admin']['nodes']['#options'] as &$node) {
+
+    $href = $node['title']['data']['#href'];
+
+    if ($api) {
+      $host = $_SERVER['SERVER_NAME'];
+      $req_http = "http://api.chartbeat.com/live/summary/v3/?apikey=63efd52e820c972ffd5d77e5f0cf5cbd&host=$host&keys=read&path=$href";
+      $resp = drupal_http_request($req_http);
+      dpm($resp);
+    }
+    else {
+      $node['concurrent'] = '';
+    }
+  }
+  dpm($form);
+  dpm($_SERVER);
 }
 
 /**
