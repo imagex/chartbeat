@@ -75,7 +75,7 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
 
     if ($api) {
       $host = $_SERVER['SERVER_NAME'];
-      $req_http = "http://api.chartbeat.com/live/summary/v3/?apikey=63efd52e820c972ffd5d77e5f0cf5cbd&host=$host&keys=read&path=$href";
+      $req_http = "http://api.chartbeat.com/live/summary/v3/?apikey=63efd52e820c972ffd5d77e5f0cf5cbd&host=$host&keys=read&path=/$href";
       $resp = drupal_http_request($req_http);
       dpm($resp);
     }
