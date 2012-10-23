@@ -77,14 +77,20 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
       $host = $_SERVER['SERVER_NAME'];
       $req_http = "http://api.chartbeat.com/live/summary/v3/?apikey=63efd52e820c972ffd5d77e5f0cf5cbd&host=$host&keys=read&path=/$href";
       $resp = drupal_http_request($req_http);
-      dpm($resp);
+
+      if ($resp->code == 200) {
+        $response = json_decode($resp->data, true);
+        dpm($response);
+        $num = (int)$response['read']['data']['sum'];
+        $node['concurrent'] = $num;
+      } else {
+        $node['concurrent'] = '';
+      }
     }
     else {
       $node['concurrent'] = '';
     }
   }
-  dpm($form);
-  dpm($_SERVER);
 }
 
 /**
