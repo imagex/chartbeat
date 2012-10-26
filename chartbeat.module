@@ -137,22 +137,22 @@ function _chartbeat_dashboard_view() {
   if ($api) {
     $content = array(
       '#theme' => 'table',
-      'header' => array(
-        'URL', 'Visitors',
-      ),
-      'rows' => array(),
+      '#header' => array('URL', 'Visitors'),
+      '#rows' => array(),
     );
 
     $host = $_SERVER['SERVER_NAME'];
-    $req_http = "http://api.chartbeat.com/live/toppages/v3/?apikey=$api&host=$host&keys=read&path=/$href";
+    $req_http = "http://api.chartbeat.com/live/toppages/v3/?apikey=$api&host=$host&limit=10";
     $resp = drupal_http_request($req_http);
 
     if ($resp->code == 200) {
       $response = json_decode($resp->data, true);
       if (!empty($response)) {
         foreach ($response['pages'] as $page) {
-          $content['rows'][] = array($page['path'],
-            $page['path']['stats']['people']);
+          $content['#rows'][] = array(
+            $page['path'],
+            $page['stats']['people'],
+          );
         }
       }
     }
