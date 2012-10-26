@@ -75,7 +75,7 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
 
     if ($api) {
       $host = $_SERVER['SERVER_NAME'];
-      $req_http = "http://api.chartbeat.com/live/summary/v3/?apikey=63efd52e820c972ffd5d77e5f0cf5cbd&host=$host&keys=read&path=/$href";
+      $req_http = "http://api.chartbeat.com/live/summary/v3/?apikey=$api&host=$host&keys=read&path=/$href";
       $resp = drupal_http_request($req_http);
 
       if ($resp->code == 200) {
@@ -92,6 +92,84 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
     }
     else {
       $node['concurrent'] = 'n/a';
+    }
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ *
+ */
+function chartbeat_block_info() {
+
+  $blocks['chartbeat-dashboard'] = array(
+    'info' => t('Chartbeat dashboard iframe'),
+    'cache' => DRUPAL_NO_CACHE,
+    'properties' => array(
+      'administrative' => TRUE,
+    ),
+    'weight' => 10,
+    'status' => TRUE,
+    'region' => 'dashboard_main',
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function chartbeat_block_view($delta = '') {
+  $block = array();
+  switch($delta) {
+    case 'chartbeat-dashboard':
+      $block['subject'] = t('Chartbeat Dashboard');
+      $block['content'] = _chartbeat_dashboard_view();
+      break;
+  }
+
+  return $block;
+}
+
+function _chartbeat_dashboard_view() {
+  $api = variable_get('chartbeat_api_key', FALSE);
+
+  if ($api) {
+    $content = array(
+      '#theme' => 'table',
+      'header' => array(
+        'URL', 'Visitors',
+      ),
+      'rows' => array(),
+    );
+
+    $host = $_SERVER['SERVER_NAME'];
+    $req_http = "http://api.chartbeat.com/live/toppages/v3/?apikey=$api&host=$host&keys=read&path=/$href";
+    $resp = drupal_http_request($req_http);
+
+    if ($resp->code == 200) {
+      $response = json_decode($resp->data, true);
+      if (!empty($response)) {
+        foreach ($response['pages'] as $page) {
+          $content['rows'][] = array($page['path'],
+            $page['path']['stats']['people']);
+        }
+      }
+    }
+  } else {
+    $content = array(
+      '#type' => 'markup',
+      '#markup' => 'Pages cannot be retrieved at this time.',
+    );
+  }
+  return $content;
+}
+
+function chartbeat_block_list_alter(&$blocks) {
+  foreach ($blocks as $bid => $block) {
+    if (($block->module == 'chartbeat') && ($block->delta == "chartbeat_dashboard")) {
+      unset($blocks[$bid]);
+      break;
     }
   }
 }
