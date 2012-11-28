@@ -46,42 +46,6 @@ function chartbeat_init() {
   }
 }
 
-function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
-  // $form['admin']['concurrent'] = array(
-  //   //'data' => 'Concurrent Views',
-  //   //'field' => '',
-  // );
-//dpm($form);
-/*
-  $api = variable_get('chartbeat_api_key', FALSE);
-
-  foreach($form['admin']['nodes']['#options'] as &$node) {
-
-    //$href = $node['title']['data']['#href'];
-
-    if ($api) {
-      $host = $_SERVER['SERVER_NAME'];
-      $req_http = "http://api.chartbeat.com/live/summary/v3/?apikey=$api&host=$host&keys=read&path=/$href";
-      $resp = drupal_http_request($req_http);
-
-      if ($resp->code == 200) {
-        $response = json_decode($resp->data, true);
-        if (!empty($response)) {
-          $num = (int)$response['read']['data']['sum'];
-          $node['concurrent'] = $num;
-        } else {
-          $node['concurrent'] = 0;
-        }
-      } else {
-        $node['concurrent'] = 'n/a';
-      }
-    }
-    else {
-      $node['concurrent'] = 'n/a';
-    }
-  }*/
-}
-
 function chartbeat_theme_registry_alter(&$theme_registry) {
   $theme_registry['node_admin_nodes']['file'] = 'chartbeat.theme.inc';
   $theme_registry['node_admin_nodes']['theme path'] = drupal_get_path('module', 'chartbeat');

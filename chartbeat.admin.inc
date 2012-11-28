@@ -39,6 +39,21 @@ function chartbeat_admin_settings() {
       new or returning.'),
     '#default_value' => variable_get('chartbeat_cookies', '1'),
   );
+  $form['chartbeat_options_live'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Live Stats'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['chartbeat_options_live']['chartbeat_api_key'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Chartbeat API Key'),
+    '#description' => t('To enable live stats, you need to add an API key. if
+      you don\'t have one, go <a href="@api">here</a> and click the "Add new
+       API" button in the right corner of the table.',
+       array('@api' => 'http://chartbeat.com/apikeys/')),
+    '#default_value' => variable_get('chartbeat_api_key', ''),
+  );
 
   return system_settings_form($form);
 }
