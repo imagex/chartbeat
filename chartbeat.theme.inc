@@ -38,7 +38,7 @@ function theme_chartbeat_node_admin_nodes($form) {
   else {
     $rows[] = array(array(
         'data' => t('No posts available.'),
-        'colspan' => '6',
+        'colspan' => '7',
       ));
   }
 

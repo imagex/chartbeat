@@ -46,12 +46,17 @@ function chartbeat_init() {
   }
 }
 
+/**
+ * Implementation of hook_theme_registry_alter().
+ */
 function chartbeat_theme_registry_alter(&$theme_registry) {
-  $theme_registry['node_admin_nodes']['file'] = 'chartbeat.theme.inc';
-  $theme_registry['node_admin_nodes']['theme path'] = drupal_get_path('module', 'chartbeat');
-  $theme_registry['node_admin_nodes']['function'] = 'theme_chartbeat_node_admin_nodes';
-  $theme_registry['node_admin_nodes']['include files'] = array("./" . drupal_get_path('module', 'chartbeat') . "/chartbeat.theme.inc");
-  $theme_registry['node_admin_nodes']['theme paths'] = array(drupal_get_path('module', 'chartbeat'));
+  if (variable_get('chartbeat_api_key', '') !== '') {
+    $theme_registry['node_admin_nodes']['file'] = 'chartbeat.theme.inc';
+    $theme_registry['node_admin_nodes']['theme path'] = drupal_get_path('module', 'chartbeat');
+    $theme_registry['node_admin_nodes']['function'] = 'theme_chartbeat_node_admin_nodes';
+    $theme_registry['node_admin_nodes']['include files'] = array("./" . drupal_get_path('module', 'chartbeat') . "/chartbeat.theme.inc");
+    $theme_registry['node_admin_nodes']['theme paths'] = array(drupal_get_path('module', 'chartbeat'));
+  }
 }
 
 /**

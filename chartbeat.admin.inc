@@ -1,13 +1,14 @@
 <?php
 
 /**
- * Menu callback for the String Overrides module to display its administration
+ * Menu callback to display the Chartbeat administration options.
  */
 function chartbeat_admin_settings() {
   $form['chartbeat_uid'] = array(
     '#type' => 'textfield',
     '#title' => t('User ID'),
-    '#description' => t('The user ID associated with your <a href="@chartbeat">Chartbeat</a> account.', array('@chartbeat' => 'http://chartbeat.com')),
+    '#description' => t('The user ID associated with your <a href="@chartbeat">
+      Chartbeat</a> account.', array('@chartbeat' => 'http://chartbeat.com')),
     '#default_value' => variable_get('chartbeat_uid', ''),
   );
   $form['chartbeat_domain'] = array(
@@ -48,9 +49,9 @@ function chartbeat_admin_settings() {
   $form['chartbeat_options_live']['chartbeat_api_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Chartbeat API Key'),
-    '#description' => t('To enable live stats, you need to add an API key. if
-      you don\'t have one, go <a href="@api">here</a> and click the "Add new
-       API" button in the right corner of the table.',
+    '#description' => t('To enable live stats on the content admin screen, you
+      need to add an API key. if you don\'t have one, go <a href="@api">here</a>
+      and click the "Add new API" button in the right corner of the table.',
        array('@api' => 'http://chartbeat.com/apikeys/')),
     '#default_value' => variable_get('chartbeat_api_key', ''),
   );
