@@ -1,4 +1,9 @@
 <?php
+/**
+ * @file
+ * The admin file containing the menu callback function.
+ */
+
 
 /**
  * Menu callback to display the Chartbeat administration options.
@@ -26,7 +31,7 @@ function chartbeat_admin_settings() {
   $form['chartbeat_options_advanced']['chartbeat_use_canonical'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use Canonical'),
-    '#description' => t('If your site defines &lt;link rel=\'canonical\'
+    '#description' => t('If your site defines &lt;link rel="canonical"
       .../&gt;, you can set check this value to to make Chartbeat use the
       canonical path instead of the actual URL.'),
     '#default_value' => variable_get('chartbeat_use_canonical', '1'),
