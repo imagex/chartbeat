@@ -1,7 +1,14 @@
 <?php
+/**
+ * @file
+ * The main module file.
+ *
+ * Contains menu, permission, init, theme registry, and footer hook
+ * implementations.
+ */
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function chartbeat_menu() {
   $items['admin/settings/chartbeat'] = array(
@@ -16,7 +23,7 @@ function chartbeat_menu() {
 }
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_perm().
  */
 function chartbeat_perm() {
   return array(
@@ -25,7 +32,7 @@ function chartbeat_perm() {
 }
 
 /**
- * Implementation of hook_init().
+ * Implements hook_init().
  */
 function chartbeat_init() {
   $uid = variable_get('chartbeat_uid', '');
@@ -37,25 +44,32 @@ function chartbeat_init() {
 
   if (is_numeric($uid)) {
     drupal_set_html_head('<script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>');
-    drupal_add_js(array('chartbeat' => array(
-      'uid' => (int)$uid,
-      'domain' => variable_get('chartbeat_domain', ''),
-      'useCanonical' => $canonical,
-      'noCookies' => $cookies,
-    )), 'setting');
+    drupal_add_js(array(
+      'chartbeat' => array(
+        'uid' => (int) $uid,
+        'domain' => variable_get('chartbeat_domain', ''),
+        'useCanonical' => $canonical,
+        'noCookies' => $cookies,
+      )), '
+    setting');
   }
 }
 
+/**
+ * Implements hook_theme_registry_alter().
+ */
 function chartbeat_theme_registry_alter(&$theme_registry) {
-  $theme_registry['node_admin_nodes']['file'] = 'chartbeat.theme.inc';
-  $theme_registry['node_admin_nodes']['theme path'] = drupal_get_path('module', 'chartbeat');
-  $theme_registry['node_admin_nodes']['function'] = 'theme_chartbeat_node_admin_nodes';
-  $theme_registry['node_admin_nodes']['include files'] = array("./" . drupal_get_path('module', 'chartbeat') . "/chartbeat.theme.inc");
-  $theme_registry['node_admin_nodes']['theme paths'] = array(drupal_get_path('module', 'chartbeat'));
+  if (variable_get('chartbeat_api_key', '') !== '') {
+    $theme_registry['node_admin_nodes']['file'] = 'chartbeat.theme.inc';
+    $theme_registry['node_admin_nodes']['theme path'] = drupal_get_path('module', 'chartbeat');
+    $theme_registry['node_admin_nodes']['function'] = 'theme_chartbeat_node_admin_nodes';
+    $theme_registry['node_admin_nodes']['include files'] = array("./" . drupal_get_path('module', 'chartbeat') . "/chartbeat.theme.inc");
+    $theme_registry['node_admin_nodes']['theme paths'] = array(drupal_get_path('module', 'chartbeat'));
+  }
 }
 
 /**
- * Implementation of hook_footer().
+ * Implements hook_footer().
  */
 function chartbeat_footer() {
   $uid = variable_get('chartbeat_uid', '');
