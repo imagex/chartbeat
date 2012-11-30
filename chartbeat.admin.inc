@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * The admin file containing the menu callback function.
+ */
 
 /**
  * Menu callback for the String Overrides module to display its administration
@@ -8,7 +12,7 @@ function chartbeat_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('User ID'),
     '#description' => t('The user ID associated with your <a href="@chartbeat">
-      Chartbeat</a> account. You can locate it within step two of adding a new 
+      Chartbeat</a> account. You can locate it within step two of adding a new
       website to track at ChartBeat.',
       array('@chartbeat' => 'http://chartbeat.com')),
     '#default_value' => variable_get('chartbeat_uid', ''),
@@ -28,7 +32,7 @@ function chartbeat_admin_settings() {
   $form['chartbeat_options_advanced']['chartbeat_use_canonical'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use Canonical'),
-    '#description' => t('If your site defines &lt;link rel=\'canonical\'
+    '#description' => t('If your site defines &lt;link rel="canonical"
       .../&gt;, you can set check this value to to make Chartbeat use the
       canonical path instead of the actual URL.'),
     '#default_value' => variable_get('chartbeat_use_canonical', '1'),

@@ -8,7 +8,7 @@
 
 
 /**
- * Implements of hook_menu().
+ * Implements hook_menu().
  */
 function chartbeat_menu() {
   $items['admin/config/system/chartbeat'] = array(
@@ -34,7 +34,7 @@ function chartbeat_permission() {
 }
 
 /**
- * Implementation of hook_init().
+ * Implements hook_init().
  */
 function chartbeat_init() {
   $uid = variable_get('chartbeat_uid', '');
@@ -52,15 +52,20 @@ function chartbeat_init() {
       '#value' => 'var _sf_startpt=(new Date()).getTime();',
     ), 'chartbeat');
     // Inject the Chartbeat settings.
-    drupal_add_js(array('chartbeat' => array(
-      'uid' => (int)$uid,
-      'domain' => variable_get('chartbeat_domain', ''),
-      'useCanonical' => $canonical,
-      'noCookies' => $cookies,
-    )), 'setting');
+    drupal_add_js(array(
+      'chartbeat' => array(
+        'uid' => (int) $uid,
+        'domain' => variable_get('chartbeat_domain', ''),
+        'useCanonical' => $canonical,
+        'noCookies' => $cookies,
+      )),
+    'setting');
   }
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
 function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
   $form['admin']['nodes']['#header']['concurrent'] = array(
     'data' => 'Concurrent Views',
@@ -69,7 +74,7 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
 
   $api = variable_get('chartbeat_api_key', FALSE);
 
-  foreach($form['admin']['nodes']['#options'] as &$node) {
+  foreach ($form['admin']['nodes']['#options'] as &$node) {
 
     $href = $node['title']['data']['#href'];
 
@@ -79,14 +84,16 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
       $resp = drupal_http_request($req_http);
 
       if ($resp->code == 200) {
-        $response = json_decode($resp->data, true);
+        $response = json_decode($resp->data, TRUE);
         if (!empty($response)) {
-          $num = (int)$response['read']['data']['sum'];
+          $num = (int) $response['read']['data']['sum'];
           $node['concurrent'] = $num;
-        } else {
+        }
+        else {
           $node['concurrent'] = 0;
         }
-      } else {
+      }
+      else {
         $node['concurrent'] = 'n/a';
       }
     }
@@ -121,7 +128,7 @@ function chartbeat_block_info() {
  */
 function chartbeat_block_view($delta = '') {
   $block = array();
-  switch($delta) {
+  switch ($delta) {
     case 'chartbeat-dashboard':
       $block['subject'] = t('Chartbeat Dashboard');
       $block['content'] = _chartbeat_dashboard_view();
@@ -131,11 +138,18 @@ function chartbeat_block_view($delta = '') {
   return $block;
 }
 
+/**
+ * [_chartbeat_dashboard_view description]
+ *
+ * @return [type]
+ *   [description]
+ */
 function _chartbeat_dashboard_view() {
   $api = variable_get('chartbeat_api_key', FALSE);
 
   if ($api) {
     $content = array(
+      '#prefix' => '<h2>' . t('Most Visited Pages') . '</h2>';
       '#theme' => 'table',
       '#header' => array('URL', 'Visitors'),
       '#rows' => array(),
@@ -146,7 +160,7 @@ function _chartbeat_dashboard_view() {
     $resp = drupal_http_request($req_http);
 
     if ($resp->code == 200) {
-      $response = json_decode($resp->data, true);
+      $response = json_decode($resp->data, TRUE);
       if (!empty($response)) {
         foreach ($response['pages'] as $page) {
           $content['#rows'][] = array(
@@ -156,7 +170,8 @@ function _chartbeat_dashboard_view() {
         }
       }
     }
-  } else {
+  }
+  else {
     $content = array(
       '#type' => 'markup',
       '#markup' => 'Pages cannot be retrieved at this time.',
@@ -165,6 +180,9 @@ function _chartbeat_dashboard_view() {
   return $content;
 }
 
+/**
+ * Implements hook_block_list_alter().
+ */
 function chartbeat_block_list_alter(&$blocks) {
   foreach ($blocks as $bid => $block) {
     if (($block->module == 'chartbeat') && ($block->delta == "chartbeat_dashboard")) {
