@@ -50,8 +50,7 @@ function chartbeat_init() {
         'domain' => variable_get('chartbeat_domain', ''),
         'useCanonical' => $canonical,
         'noCookies' => $cookies,
-      )), '
-    setting');
+      )), 'setting');
   }
 }
 
