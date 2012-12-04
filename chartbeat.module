@@ -31,7 +31,7 @@ function chartbeat_menu() {
     'access arguments' => array('administer chartbeat settings'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'chartbeat.admin.inc',
-    'weight' => 1
+    'weight' => 1,
   );
   return $items;
 }
