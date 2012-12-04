@@ -4,7 +4,6 @@
  * The admin file containing the menu callback function.
  */
 
-
 /**
  * Menu callback to display the Chartbeat administration options.
  */
@@ -62,4 +61,24 @@ function chartbeat_admin_settings() {
   );
 
   return system_settings_form($form);
+}
+
+/**
+ * Form callback for the dashboard iframe embed page.
+ */
+function chartbeat_dashboard_form() {
+  $url = variable_get('chartbeat_domain', '');
+  $key = variable_get('chartbeat_api_key', '');
+  if ($url && $key) {
+    $form['dashboard_iframe'] = array(
+      '#value' => "<iframe src="\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>",
+    );
+  }
+  else {
+    $form['dashboard_iframe'] = array(
+      '#value' => 'Notice: You must save the domain and API key on the settings page to see the dashboard.',
+    );
+  }
+
+  return $form;
 }
