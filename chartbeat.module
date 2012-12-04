@@ -19,6 +19,20 @@ function chartbeat_menu() {
     'access arguments' => array('administer chartbeat settings'),
     'file' => 'chartbeat.admin.inc',
   );
+  $items['admin/settings/chartbeat/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/settings/chartbeat/dashboard'] = array(
+    'title' => 'Chartbeat Dashboard',
+    'description' => 'the dashboard for your Chartbeat site',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('chartbeat_dashboard_form'),
+    'access arguments' => array('administer chartbeat settings'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'chartbeat.admin.inc',
+    'weight' => 1,
+  );
   return $items;
 }
 
@@ -50,8 +64,7 @@ function chartbeat_init() {
         'domain' => variable_get('chartbeat_domain', ''),
         'useCanonical' => $canonical,
         'noCookies' => $cookies,
-      )), '
-    setting');
+      )), 'setting');
   }
 }
 
