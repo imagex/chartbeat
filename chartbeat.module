@@ -17,7 +17,22 @@ function chartbeat_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('chartbeat_admin_settings'),
     'access arguments' => array('administer chartbeat settings'),
+    'type' => MENU_NORMAL_ITEM,
     'file' => 'chartbeat.admin.inc',
+  );
+  $items['admin/config/system/chartbeat/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/system/chartbeat/dashboard'] = array(
+    'title' => 'Chartbeat Dashboard',
+    'description' => 'the dashboard for your Chartbeat site',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('chartbeat_dashboard_form'),
+    'access arguments' => array('administer chartbeat settings'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'chartbeat.admin.inc',
+    'weight' => 1,
   );
   return $items;
 }
@@ -149,7 +164,7 @@ function _chartbeat_dashboard_view() {
 
   if ($api) {
     $content = array(
-      '#prefix' => '<h2>' . t('Most Visited Pages') . '</h2>';
+      '#prefix' => '<h2>' . t('Most Visited Pages') . '</h2>',
       '#theme' => 'table',
       '#header' => array('URL', 'Visitors'),
       '#rows' => array(),
