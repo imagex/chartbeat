@@ -66,7 +66,7 @@ function chartbeat_admin_settings() {
 }
 
 /**
- * Form callback for the dashboard iframe embed page.
+ * Page callback for the dashboard iframe embed page.
  */
 function chartbeat_dashboard_page() {
   $url = variable_get('chartbeat_domain', '');
