@@ -26,8 +26,9 @@ function chartbeat_menu() {
   $items['admin/settings/chartbeat/dashboard'] = array(
     'title' => 'Chartbeat Dashboard',
     'description' => 'the dashboard for your Chartbeat site',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('chartbeat_dashboard_form'),
+    //'page callback' => 'drupal_get_form',
+    //'page arguments' => array('chartbeat_dashboard_form'),
+    'page callback' => 'chartbeat_dashboard_page',
     'access arguments' => array('administer chartbeat settings'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'chartbeat.admin.inc',
