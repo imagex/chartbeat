@@ -69,16 +69,32 @@ function chartbeat_admin_settings() {
 function chartbeat_dashboard_form() {
   $url = variable_get('chartbeat_domain', '');
   $key = variable_get('chartbeat_api_key', '');
-  if ($url && $key) {
+  if (!empty($url) && !empty($key)) {
     $form['dashboard_iframe'] = array(
-      '#value' => "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>",
+      '#markup' => "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>",
     );
   }
   else {
     $form['dashboard_iframe'] = array(
-      '#value' => 'Notice: You must save the domain and API key on the settings page to see the dashboard.',
+      '#markup' => 'Notice: You must save the domain and API key on the settings page to see the dashboard.',
     );
   }
 
   return $form;
+}
+
+/**
+ * Page callback for the dashboard iframe embed page.
+ */
+function chartbeat_dashboard_page() {
+  $url = variable_get('chartbeat_domain', '');
+  $key = variable_get('chartbeat_api_key', '');
+  if (!empty($url) && !empty($key)) {
+    $content =  "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>";
+  }
+  else {
+    $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
+  }
+
+  return $content;
 }
