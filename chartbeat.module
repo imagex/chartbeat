@@ -161,30 +161,38 @@ function chartbeat_block_view($delta = '') {
  */
 function _chartbeat_dashboard_view() {
   $api = variable_get('chartbeat_api_key', FALSE);
+  $url = variable_get('chartbeat_domain', '');
 
-  if ($api) {
+  if (!empty($api) && !empty($url)) {
+    $var = <<<EOT
+        <div id='chartbeat-widget'></div>
+        <script src='http://static.chartbeat.com/js/sitewidgets/sitetotal.js' type='text/javascript'></script>
+        <script type='text/javascript'>
+        (function() {
+            var config = {
+                'api': 'http://api.chartbeat.com/live/quickstats/v3/?apikey=$api&host=$url',
+                'element': 'chartbeat-widget',
+            };
+
+            new SiteTotal(config);
+        })();
+        </script>
+EOT;
+        /*
+          Old top pages widget; currently not working.
+
+        <div id="nd3219623"></div>
+        <script src type></script>
+        <script src="http://static.chartbeat.com/js/sitewidgets/topwidget.js" type="text/javascript" language="javascript"></script>
+        <script type="text/javascript" language="javascript">
+        new topwidget("$api", "$url" , "nd3219623", "", null);
+        </script>
+        <div class="clearfix"></div>
+        */
     $content = array(
-      '#prefix' => '<h2>' . t('Most Visited Pages') . '</h2>',
-      '#theme' => 'table',
-      '#header' => array('URL', 'Visitors'),
-      '#rows' => array(),
+      '#type' => 'markup',
+      '#markup' => $var,
     );
-
-    $host = $_SERVER['SERVER_NAME'];
-    $req_http = "http://api.chartbeat.com/live/toppages/v3/?apikey=$api&host=$host&limit=10";
-    $resp = drupal_http_request($req_http);
-
-    if ($resp->code == 200) {
-      $response = json_decode($resp->data, TRUE);
-      if (!empty($response)) {
-        foreach ($response['pages'] as $page) {
-          $content['#rows'][] = array(
-            $page['path'],
-            $page['stats']['people'],
-          );
-        }
-      }
-    }
   }
   else {
     $content = array(
