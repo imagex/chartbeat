@@ -177,6 +177,7 @@ function _chartbeat_dashboard_view() {
             new SiteTotal(config);
         })();
         </script>
+        <div class="clearfix"></div>
 EOT;
         /*
           Old top pages widget; currently not working.
