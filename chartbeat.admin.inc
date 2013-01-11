@@ -116,6 +116,26 @@ function chartbeat_dashboard_page() {
 }
 
 /**
+ * Page callback for the dashboard iframe embed page.
+ */
+function chartbeat_publishing_dashboard_page() {
+  $url = variable_get('chartbeat_domain', '');
+  $key = variable_get('chartbeat_api_key', '');
+  if (!empty($url) && !empty($key)) {
+    $content = "<iframe src=\"http://chartbeat.com/publishing/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1020></iframe>";
+  }
+  else {
+    $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
+  }
+  $variables = array(
+    '#type' => 'markup',
+    '#markup' => $content,
+  );
+
+  return render($variables);
+}
+
+/**
  * Helper function to format the list of vocabularies properly
  *
  * @param array $array

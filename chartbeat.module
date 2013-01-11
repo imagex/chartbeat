@@ -34,6 +34,16 @@ function chartbeat_menu() {
     'file' => 'chartbeat.admin.inc',
     'weight' => 1,
   );
+  $items['admin/config/system/chartbeat/publishing-dashboard'] = array(
+    'title' => 'Chartbeat Publishing Dashboard',
+    'description' => 'the dashboard for your Chartbeat Publishing account',
+    'page callback' => 'chartbeat_publishing_dashboard_page',
+    // 'page arguments' => array('chartbeat_dashboard_form'),
+    'access arguments' => array('administer chartbeat settings'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'chartbeat.admin.inc',
+    'weight' => 1,
+  );
   return $items;
 }
 
