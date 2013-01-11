@@ -28,7 +28,7 @@ function chartbeat_menu() {
     'title' => 'Chartbeat Dashboard',
     'description' => 'the dashboard for your Chartbeat site',
     'page callback' => 'chartbeat_dashboard_page',
-    //'page arguments' => array('chartbeat_dashboard_form'),
+    // 'page arguments' => array('chartbeat_dashboard_form'),
     'access arguments' => array('administer chartbeat settings'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'chartbeat.admin.inc',
@@ -53,13 +53,24 @@ function chartbeat_permission() {
  */
 function chartbeat_init() {
   $uid = variable_get('chartbeat_uid', '');
+
+  // Handler for canonical setting.
   $canonical = variable_get('chartbeat_use_canonical', '0');
   $canonical = !empty($canonical) ? TRUE : FALSE;
 
+  // Handler for cookie setting.
   $cookies = variable_get('chartbeat_cookies', '0');
   $cookies = !empty($cookies) ? FALSE : TRUE;
 
-  $sections = _chartbeat_publishing_sections();
+  // Handler for Publishing Sections setting.
+  $page = menu_get_object();
+  if (is_object($page) && $page->nid) {
+    $sections = _chartbeat_publishing_sections_load_terms($page->nid);
+  }
+  else {
+    $sections = array();
+  }
+
 
   if (is_numeric($uid)) {
     // Add the header script to start the timer.
@@ -69,24 +80,75 @@ function chartbeat_init() {
       '#value' => 'var _sf_startpt=(new Date()).getTime();',
     ), 'chartbeat');
     // Inject the Chartbeat settings.
+    $settings = array(
+      'uid' => (int) $uid,
+      'domain' => variable_get('chartbeat_domain', ''),
+      'useCanonical' => $canonical,
+      'noCookies' => $cookies,
+    );
+
+    if (!empty($sections)) {
+      $settings['sections'] = $sections;
+    }
+
     drupal_add_js(array(
-      'chartbeat' => array(
-        'uid' => (int) $uid,
-        'domain' => variable_get('chartbeat_domain', ''),
-        'useCanonical' => $canonical,
-        'noCookies' => $cookies,
-      )),
+      'chartbeat' => $settings,
+      ),
     'setting');
   }
 }
 
-function _chartbeat_publishing_sections() {
+/**
+ * Helper function to get section names from associated taxonomy terms.
+ *
+ * @param integer $nid
+ *   The node id of the page.
+ *
+ * @return string
+ *   A comma-separated list of taxonomy terms, which represent sections.
+ */
+function _chartbeat_publishing_sections_load_terms($nid = 0) {
   $sections_enabled = variable_get('chartbeat_sections_enable', FALSE);
-
-  if (!$sections_enabled) {
+  if (!$sections_enabled || $nid == 0) {
     return FALSE;
   }
+  // If Publishing Sections are enabled, get a list of vids that are used.
+  $sections = variable_get('chartbeat_sections', array());
+  $all_terms = array();
 
+  // Load all terms from those vocabs.
+  foreach ($sections as $vid => $value) {
+    $all_terms = array_merge($all_terms, taxonomy_get_tree($value));
+  }
+
+  $terms = array();
+  // Create array, key terms to tids.
+  foreach ($all_terms as $term) {
+    $terms[$term->tid] = $term->name;
+  }
+
+  // 1. Check what terms are on the page we're on.
+  $result = db_select('taxonomy_index', 't')
+    ->fields('t')
+    ->condition('nid', $nid, '=')
+    ->execute();
+
+  $node_terms = array();
+
+  // 2. Compare to all terms on all vocabs in $sections
+  // 3. Unset all terms not existing in $sections.
+  while ($res = $result->fetchAssoc()) {
+    if (isset($terms[$res['tid']])) {
+      $node_terms[$res['tid']] = $terms[$res['tid']];
+    }
+  }
+
+  if (empty($node_terms)) {
+    return FALSE;
+  }
+  $term_string = implode(',', $node_terms);
+
+  return $term_string;
 }
 
 /**
@@ -195,7 +257,8 @@ EOT;
 
         <div id="nd3219623"></div>
         <script src type></script>
-        <script src="http://static.chartbeat.com/js/sitewidgets/topwidget.js" type="text/javascript" language="javascript"></script>
+        <script src="http://static.chartbeat.com/js/sitewidgets/topwidget.js"
+          type="text/javascript" language="javascript"></script>
         <script type="text/javascript" language="javascript">
         new topwidget("$api", "$url" , "nd3219623", "", null);
         </script>

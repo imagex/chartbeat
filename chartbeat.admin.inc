@@ -82,8 +82,13 @@ function chartbeat_admin_settings() {
       '#type' => 'checkboxes',
       '#options' => _vocab_array_format(taxonomy_get_vocabularies()),
       '#title' => t('Current Vocabularies'),
-      '#disabled' => variable_get('chartbeat_sections_enable', FALSE) ? FALSE : TRUE,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="chartbeat_sections_enable"]' => array('checked' => TRUE),
+        ),
+      ),
       '#description' => t('Select which taxonomy terms will be tracked as sections.'),
+      '#default_value' => variable_get('chartbeat_sections', ''),
     );
   }
 
