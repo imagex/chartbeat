@@ -66,9 +66,11 @@ function chartbeat_init() {
   $page = menu_get_object();
   if (is_object($page) && $page->nid) {
     $sections = _chartbeat_publishing_sections_load_terms($page->nid);
+    $author = user_load($page->uid)->name;
   }
   else {
     $sections = array();
+    $authors = NULL;
   }
 
 
@@ -89,6 +91,9 @@ function chartbeat_init() {
 
     if (!empty($sections)) {
       $settings['sections'] = $sections;
+    }
+    if (!empty($author)) {
+      $settings['authors'] = $author;
     }
 
     drupal_add_js(array(
