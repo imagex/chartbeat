@@ -59,6 +59,46 @@ function chartbeat_admin_settings() {
        array('@api' => 'http://chartbeat.com/apikeys/')),
     '#default_value' => variable_get('chartbeat_api_key', ''),
   );
+  $form['chartbeat_publishing_options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Chartbeat Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  $sections_enabled = variable_get('chartbeat_sections_enable', FALSE);
+  $form['chartbeat_publishing_options']['chartbeat_sections_enable'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable sections'),
+    '#description' => t('Enable section tracking. See <a href="@groups">here</a> for more information.', array(
+      '@groups' => 'http://chartbeat.com/docs/configuration_variables/#groups',
+    )),
+    '#default_value' => $sections_enabled,
+    '#ahah' => array(
+      'path' => 'admin/settings/chartbeat/settings/publishing/sections_callback',
+      'wrapper' => 'chartbeat-sections-taxonomy-vocab-wrapper',
+      'method' => 'replace',
+      'effect' => 'none',
+    ),
+  );
+
+  $form['chartbeat_publishing_options']['chartbeat_sections_wrapper'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Taxonomy Vocabularies'),
+    '#description' => !module_exists('taxonomy') ? t('The taxonomy module must be enabled to use sections.') : (!$sections_enabled ? t('You must enable sections support to select taxonomy vocabularies.') : t('Select the taxonomy vocabularies you would like to provide section support for.')),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#prefix' => '<div id="chartbeat-sections-taxonomy-vocab-wrapper">',
+    '#suffix' => '</div>',
+  );
+
+  if ($sections_enabled || !empty($form_state['values']['chartbeat_sections_enable'])) {
+    $form['chartbeat_publishing_options']['chartbeat_sections_wrapper']['chartbeat_sections'] = array(
+      '#type' => 'checkboxes',
+      '#options' => _chartbeat_taxonomy_array_format(taxonomy_get_vocabularies()),
+      '#default_value' => variable_get('chartbeat_sections', ''),
+    );
+  }
 
   return system_settings_form($form);
 }
@@ -90,11 +130,48 @@ function chartbeat_dashboard_page() {
   $url = variable_get('chartbeat_domain', '');
   $key = variable_get('chartbeat_api_key', '');
   if (!empty($url) && !empty($key)) {
-    $content =  "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>";
+    $content = "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>";
   }
   else {
     $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
   }
 
   return $content;
+}
+
+/**
+ * Callback method for AHAH enabled "Enable sections".
+ *
+ * AHAH callback method for handling the loading or unloading of taxonomy
+ * vocabularies in a checkbox list. Outputs json using `drupal_json` and exits.
+ */
+function chartbeat_admin_settings_publishing_sections_callback() {
+  $form = _chartbeat_ahah_init_helper();
+  $chartbeat_sections_wrapper = $form['chartbeat_publishing_options']['chartbeat_sections_wrapper'];
+  unset($chartbeat_sections_wrapper['#prefix'], $chartbeat_sections_wrapper['#suffix']);
+
+  /* Simply gets and clears the messages - we don't want status messages rendering */
+  $messages = drupal_get_messages('status', TRUE);
+  $output = drupal_render($chartbeat_sections_wrapper);
+
+  drupal_json(array('status' => TRUE, 'data' => $output));
+  exit();
+}
+
+/**
+ * Formats an array of vocabularies into a usable checkboxes #options value.
+ *
+ * @param array $taxonomies
+ *   The array of taxonomy vocabularies to format.
+ *
+ * @return array
+ *   The formatted array of vocabularies.
+ */
+function _chartbeat_taxonomy_array_format($taxonomies = array()) {
+  $taxonomy_array = array();
+  foreach ($taxonomies as $taxonomy) {
+    $taxonomy_array[$taxonomy->vid] = $taxonomy->name;
+  }
+
+  return $taxonomy_array;
 }

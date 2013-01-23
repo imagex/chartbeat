@@ -23,11 +23,17 @@ function chartbeat_menu() {
     'title' => 'Settings',
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
+  $items['admin/settings/chartbeat/settings/publishing/sections_callback'] = array(
+    'access arguments' => array('administer chartbeat settings'),
+    'page callback' => 'chartbeat_admin_settings_publishing_sections_callback',
+    'file' => 'chartbeat.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
   $items['admin/settings/chartbeat/dashboard'] = array(
     'title' => 'Chartbeat Dashboard',
     'description' => 'the dashboard for your Chartbeat site',
-    //'page callback' => 'drupal_get_form',
-    //'page arguments' => array('chartbeat_dashboard_form'),
+    // 'page callback' => 'drupal_get_form',
+    // 'page arguments' => array('chartbeat_dashboard_form'),
     'page callback' => 'chartbeat_dashboard_page',
     'access arguments' => array('administer chartbeat settings'),
     'type' => MENU_LOCAL_TASK,
@@ -110,4 +116,25 @@ function chartbeat_footer() {
 EOT;
     return $output;
   }
+}
+
+/**
+ *
+ */
+function _chartbeat_ahah_init_helper() {
+  $form_state = array('storage' => NULL, 'submitted' => FALSE);
+  $form_build_id = $_POST['form_build_id'];
+  $form = form_get_cache($form_build_id, $form_state);
+  
+  $args = $form['#parameters'];
+  $form_id = array_shift($args);
+  $form_state['post'] = $form['#post'] = $_POST;
+  
+  $form_state['ahah_submission'] = TRUE;
+  $form['#programmed'] = $form['#redirect'] = FALSE;
+  
+  drupal_process_form($form_id, $form, $form_state);
+  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  
+  return $form;
 }
