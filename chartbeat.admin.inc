@@ -159,14 +159,13 @@ function chartbeat_dashboard_page() {
  * vocabularies in a checkbox list. Outputs json using `drupal_json` and exits.
  */
 function chartbeat_admin_settings_publishing_sections_callback() {
+  if (!_chartbeat_is_ajax_request()) {
+    return drupal_goto('admin/settings/chartbeat/settings');
+  }
+
   if (!module_exists('taxonomy')) {
-    if (!_chartbeat_is_ajax_request()) {
-      return drupal_goto('admin/settings/chartbeat/settings');
-    }
-    else {
-      drupal_json(array('status' => FALSE));
-      exit();
-    }
+    drupal_json(array('status' => FALSE));
+    exit();
   }
 
   $form = _chartbeat_ahah_init_helper();
