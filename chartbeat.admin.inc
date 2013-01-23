@@ -100,6 +100,15 @@ function chartbeat_admin_settings() {
     );
   }
 
+  $form['chartbeat_publishing_options']['chartbeat_authors_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable authors'),
+    '#description' => t('Enable author tracking. See <a href="@groups">here</a> for more information.', array(
+      '@groups' => 'http://chartbeat.com/docs/configuration_variables/#groups',
+    )),
+    '#default_value' => variable_get('chartbeat_authors_enabled', '0'),
+  );
+
   return system_settings_form($form);
 }
 
