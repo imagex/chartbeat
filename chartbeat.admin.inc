@@ -61,6 +61,36 @@ function chartbeat_admin_settings() {
        array('@api' => 'http://chartbeat.com/apikeys/')),
     '#default_value' => variable_get('chartbeat_api_key', ''),
   );
+  $form['chartbeat_publishing'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Chartbeat Publishing Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => t('These options are only available to Chartbeat Publishing accounts. For more
+      information, visit <a href=http://chartbeat.com/publishing/>Chartbeat Publishing</a>.'),
+  );
+  $form['chartbeat_publishing']['chartbeat_sections_enable'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable sections'),
+    '#description' => t('Enables section tracking. See <a href="@groups">here</a>
+      for more information.',
+      array('@groups' => 'http://chartbeat.com/docs/configuration_variables/#groups')),
+    '#default_value' => variable_get('chartbeat_sections_enable', '0'),
+  );
+  if (module_exists('taxonomy')) {
+    $form['chartbeat_publishing']['chartbeat_sections'] = array(
+      '#type' => 'checkboxes',
+      '#options' => _vocab_array_format(taxonomy_get_vocabularies()),
+      '#title' => t('Current Vocabularies'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="chartbeat_sections_enable"]' => array('checked' => TRUE),
+        ),
+      ),
+      '#description' => t('Select which taxonomy terms will be tracked as sections.'),
+      '#default_value' => variable_get('chartbeat_sections', ''),
+    );
+  }
 
   return system_settings_form($form);
 }
@@ -72,7 +102,7 @@ function chartbeat_dashboard_page() {
   $url = variable_get('chartbeat_domain', '');
   $key = variable_get('chartbeat_api_key', '');
   if (!empty($url) && !empty($key)) {
-    $content =  "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>";
+    $content = "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>";
   }
   else {
     $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
@@ -83,4 +113,41 @@ function chartbeat_dashboard_page() {
   );
 
   return render($variables);
+}
+
+/**
+ * Page callback for the dashboard iframe embed page.
+ */
+function chartbeat_publishing_dashboard_page() {
+  $url = variable_get('chartbeat_domain', '');
+  $key = variable_get('chartbeat_api_key', '');
+  if (!empty($url) && !empty($key)) {
+    $content = "<iframe src=\"http://chartbeat.com/publishing/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1020></iframe>";
+  }
+  else {
+    $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
+  }
+  $variables = array(
+    '#type' => 'markup',
+    '#markup' => $content,
+  );
+
+  return render($variables);
+}
+
+/**
+ * Helper function to format the list of vocabularies properly
+ *
+ * @param array $array
+ *   array of vocabularies
+ *
+ * @return array
+ *   reformatted array of vocabulary names, keyed by VID
+ */
+function _vocab_array_format($array = NULL) {
+  $vocab_array = array();
+  foreach ($array as $vocab) {
+    $vocab_array[$vocab->vid] = $vocab->name;
+  }
+  return $vocab_array;
 }
