@@ -339,3 +339,15 @@ function _chartbeat_publishing_authors_js_prepare() {
       )), 'setting', 'footer');
   }
 }
+
+/**
+ * Tests whether or not this request was an Ajax request.
+ *
+ * Uses a comparison between `_SERVER['HTTP_X_REQUESTED]` and `xmlhttprequest`.
+ *
+ * @returns bool
+ *   Returns true if the request was an 'assumed' ajax, otherwise false.
+ */
+function _chartbeat_is_ajax_request() {
+  return strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+}

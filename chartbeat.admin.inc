@@ -70,34 +70,38 @@ function chartbeat_admin_settings() {
   $form['chartbeat_publishing_options']['chartbeat_sections_enable'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable sections'),
-    '#description' => t('Enable section tracking. See <a href="@groups">here</a> for more information.', array(
+    '#description' => !module_exists('taxonomy') ? t('The taxonomy module must be enabled to use sections. After enabling taxonomy, you will be able to use section tracking.') : (t('Enable section tracking. See <a href="@groups">here</a> for more information.', array(
       '@groups' => 'http://chartbeat.com/docs/configuration_variables/#groups',
-    )),
-    '#default_value' => $sections_enabled,
-    '#ahah' => array(
+    ))),
+    '#default_value' => module_exists('taxonomy') ? $sections_enabled : FALSE,
+    '#disabled' => module_exists('taxonomy') ? FALSE : TRUE,
+  );
+
+  if (module_exists('taxonomy')) {
+    $form['chartbeat_publishing_options']['chartbeat_sections_enable']['#ahah'] = array(
       'path' => 'admin/settings/chartbeat/settings/publishing/sections_callback',
       'wrapper' => 'chartbeat-sections-taxonomy-vocab-wrapper',
       'method' => 'replace',
       'effect' => 'none',
-    ),
-  );
-
-  $form['chartbeat_publishing_options']['chartbeat_sections_wrapper'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Taxonomy Vocabularies'),
-    '#description' => !module_exists('taxonomy') ? t('The taxonomy module must be enabled to use sections.') : (!$sections_enabled ? t('You must enable sections support to select taxonomy vocabularies.') : t('Select the taxonomy vocabularies you would like to provide section support for.')),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#prefix' => '<div id="chartbeat-sections-taxonomy-vocab-wrapper">',
-    '#suffix' => '</div>',
-  );
-
-  if ($sections_enabled || !empty($form_state['values']['chartbeat_sections_enable'])) {
-    $form['chartbeat_publishing_options']['chartbeat_sections_wrapper']['chartbeat_sections'] = array(
-      '#type' => 'checkboxes',
-      '#options' => _chartbeat_taxonomy_array_format(taxonomy_get_vocabularies()),
-      '#default_value' => variable_get('chartbeat_sections', ''),
     );
+
+    $form['chartbeat_publishing_options']['chartbeat_sections_wrapper'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Taxonomy Vocabularies'),
+      '#description' => !module_exists('taxonomy') ? t('The taxonomy module must be enabled to use sections.') : (!$sections_enabled ? t('You must enable sections support to select taxonomy vocabularies.') : t('Select the taxonomy vocabularies you would like to provide section support for.')),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+      '#prefix' => '<div id="chartbeat-sections-taxonomy-vocab-wrapper">',
+      '#suffix' => '</div>',
+    );
+
+    if ($sections_enabled || !empty($form_state['values']['chartbeat_sections_enable'])) {
+      $form['chartbeat_publishing_options']['chartbeat_sections_wrapper']['chartbeat_sections'] = array(
+        '#type' => 'checkboxes',
+        '#options' => _chartbeat_taxonomy_array_format(taxonomy_get_vocabularies()),
+        '#default_value' => variable_get('chartbeat_sections', ''),
+      );
+    }
   }
 
   $form['chartbeat_publishing_options']['chartbeat_authors_enabled'] = array(
@@ -155,6 +159,16 @@ function chartbeat_dashboard_page() {
  * vocabularies in a checkbox list. Outputs json using `drupal_json` and exits.
  */
 function chartbeat_admin_settings_publishing_sections_callback() {
+  if (!module_exists('taxonomy')) {
+    if (!_chartbeat_is_ajax_request()) {
+      return drupal_goto('admin/settings/chartbeat/settings');
+    }
+    else {
+      drupal_json(array('status' => FALSE));
+      exit();
+    }
+  }
+
   $form = _chartbeat_ahah_init_helper();
   $chartbeat_sections_wrapper = $form['chartbeat_publishing_options']['chartbeat_sections_wrapper'];
   unset($chartbeat_sections_wrapper['#prefix'], $chartbeat_sections_wrapper['#suffix']);
