@@ -1,0 +1,353 @@
+<?php
+/**
+ * @file
+ * The main module file.
+ *
+ * Contains menu, permission, init, theme registry, and footer hook
+ * implementations.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function chartbeat_menu() {
+  $items['admin/settings/chartbeat'] = array(
+    'title' => 'Chartbeat',
+    'description' => 'Change the setting configuration when using Chartbeat.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('chartbeat_admin_settings'),
+    'access arguments' => array('administer chartbeat settings'),
+    'file' => 'chartbeat.admin.inc',
+  );
+  $items['admin/settings/chartbeat/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/settings/chartbeat/settings/publishing/sections_callback'] = array(
+    'access arguments' => array('administer chartbeat settings'),
+    'page callback' => 'chartbeat_admin_settings_publishing_sections_callback',
+    'file' => 'chartbeat.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/chartbeat/dashboard'] = array(
+    'title' => 'Chartbeat Dashboard',
+    'description' => 'the dashboard for your Chartbeat site',
+    // 'page callback' => 'drupal_get_form',
+    // 'page arguments' => array('chartbeat_dashboard_form'),
+    'page callback' => 'chartbeat_dashboard_page',
+    'access arguments' => array('administer chartbeat settings'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'chartbeat.admin.inc',
+    'weight' => 1,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_perm().
+ */
+function chartbeat_perm() {
+  return array(
+    'administer chartbeat settings',
+  );
+}
+
+/**
+ * Implements hook_init().
+ */
+function chartbeat_init() {
+  chartbeat_prepare_js();
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function chartbeat_theme_registry_alter(&$theme_registry) {
+  if (variable_get('chartbeat_api_key', '') !== '') {
+    $theme_registry['node_admin_nodes']['file'] = 'chartbeat.theme.inc';
+    $theme_registry['node_admin_nodes']['theme path'] = drupal_get_path('module', 'chartbeat');
+    $theme_registry['node_admin_nodes']['function'] = 'theme_chartbeat_node_admin_nodes';
+    $theme_registry['node_admin_nodes']['include files'] = array("./" . drupal_get_path('module', 'chartbeat') . "/chartbeat.theme.inc");
+    $theme_registry['node_admin_nodes']['theme paths'] = array(drupal_get_path('module', 'chartbeat'));
+  }
+}
+
+/**
+ * Implements hook_footer().
+ */
+function chartbeat_footer() {
+  if (chartbeat_js_allowed()) {
+    _chartbeat_publishing_authors_js_prepare();
+    _chartbeat_publishing_sections_js_prepare();
+
+    $js = <<<EOT
+  var _sf_async_config=Drupal.settings.chartbeat;
+  (function(){
+    function loadChartbeat() {
+      window._sf_endpt=(new Date()).getTime();
+      var e = document.createElement('script');
+      e.setAttribute('language', 'javascript');
+      e.setAttribute('type', 'text/javascript');
+      e.setAttribute('src',
+         (("https:" == document.location.protocol) ? "https://s3.amazonaws.com/" : "http://") +
+         "static.chartbeat.com/js/chartbeat.js");
+      document.body.appendChild(e);
+    }
+    var oldonload = window.onload;
+    window.onload = (typeof window.onload != 'function') ?
+       loadChartbeat : function() { oldonload(); loadChartbeat(); };
+  })();
+EOT;
+    drupal_add_js($js, 'inline', 'footer');
+  }
+}
+
+/**
+ * Implements hook_nodeapi().
+ */
+function chartbeat_nodeapi($node, $op, $a3 = NULL, $a4 = NULL) {
+  switch ($op) {
+    case 'view':
+      if (chartbeat_publishing_sections_enabled()) {
+        $sections = variable_get('chartbeat_sections', '');
+        if (!$sections) {
+          return;
+        }
+
+        foreach ($sections as $section_id) {
+          $terms = taxonomy_node_get_terms_by_vocabulary($node, $section_id);
+          foreach ($terms as $term) {
+            chartbeat_publishing_add_section($term->name);
+          }
+        }
+      }
+
+      if (chartbeat_publishing_authors_enabled()) {
+        $u = user_load($node->uid);
+        chartbeat_publishing_add_author($u->name);
+      }
+
+      break;
+  }
+}
+
+/**
+ * Is chartbeat publishing authors options enabled.
+ *
+ * @return bool
+ *   Returns true if the authors option is enabled, otherwise false.
+ */
+function chartbeat_publishing_authors_enabled() {
+  return (bool) variable_get('chartbeat_authors_enabled', FALSE);
+}
+
+/**
+ * Gets the authors that have been added to be added at render.
+ *
+ * @param bool $reset
+ *   If true, the authors collection will be cleared.
+ * 
+ * @return array
+ *   Returns the array of currently added authors.
+ */
+function &chartbeat_publishing_get_authors($reset = FALSE) {
+  static $authors = array();
+  if ($reset) {
+    $authors = array();
+  }
+
+  return $authors;
+}
+
+/**
+ * Adds an author to the current page to be rendered and tracked.
+ *
+ * @param string $author_name
+ *   The name of the author to add.
+ * 
+ * @return bool
+ *   Returns true if the author was added, otherwise false.
+ */
+function chartbeat_publishing_add_author($author_name) {
+  if (!chartbeat_publishing_authors_enabled()) {
+    return FALSE;
+  }
+
+  // TODO: Determine if there is a requirement for unique implementation.
+  // What if the two user's have the same name?
+  $authors = &chartbeat_publishing_get_authors();
+  if (!in_array($author_name, $authors)) {
+    $authors[] = $author_name;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Is chartbeat publishing sections option enabled.
+ *
+ * @return bool
+ *   Returns true if the sections option is enabled, otherwise false.
+ */
+function chartbeat_publishing_sections_enabled() {
+  return (bool) variable_get('chartbeat_sections_enable', FALSE);
+}
+
+/**
+ * Gets the sections that have been added to be added at render.
+ *
+ * @param bool $reset
+ *   If true, the sections collection will be cleared.
+ * 
+ * @return array
+ *   Returns the array of currently added sections.
+ */
+function &chartbeat_publishing_get_sections($reset = FALSE) {
+  static $sections = array();
+  if ($reset) {
+    $sections = array();
+  }
+
+  return $sections;
+}
+
+/**
+ * Adds a section to the current page to be rendered and tracked.
+ *
+ * @param string $section_name
+ *   The section name.
+ * 
+ * @return bool
+ *   Returns true if the section was added, otherwise false.
+ */
+function chartbeat_publishing_add_section($section_name) {
+  if (!chartbeat_publishing_sections_enabled()) {
+    return FALSE;
+  }
+
+  $sections = &chartbeat_publishing_get_sections();
+  if (!in_array($section_name, $sections)) {
+    $sections[] = $section_name;
+  }
+
+  return TRUE;
+}
+
+/**
+ * AHAH helper method for initializing forms.
+ *
+ * @return array
+ *   Returns the ready-to-use $form array.
+ */
+function _chartbeat_ahah_init_helper() {
+  $form_state = array('storage' => NULL, 'submitted' => FALSE);
+  $form_build_id = $_POST['form_build_id'];
+  $form = form_get_cache($form_build_id, $form_state);
+
+  $args = $form['#parameters'];
+  $form_id = array_shift($args);
+  $form_state['post'] = $form['#post'] = $_POST;
+
+  $form_state['ahah_submission'] = TRUE;
+  $form['#programmed'] = $form['#redirect'] = FALSE;
+
+  drupal_process_form($form_id, $form, $form_state);
+  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+
+  return $form;
+}
+
+/**
+ * Checks if we are allowed to use chartbeat js.
+ *
+ * This is determined by checking whether or not the UID has been set.
+ * If it has been set, it must be a numeric value.
+ *
+ * @return bool
+ *   Returns true if js is allowed to be inserted, otherwise false.
+ */
+function chartbeat_js_allowed() {
+  return is_numeric(variable_get('chartbeat_uid', ''));
+}
+
+/**
+ * Prepares data and creates the chartbeat javascript.
+ */
+function chartbeat_prepare_js() {
+  $uid = variable_get('chartbeat_uid', '');
+  $canonical = variable_get('chartbeat_use_canonical', '0');
+  $canonical = !empty($canonical) ? TRUE : FALSE;
+
+  $cookies = variable_get('chartbeat_cookies', '0');
+  $cookies = !empty($cookies) ? FALSE : TRUE;
+
+  if (chartbeat_js_allowed()) {
+    drupal_set_html_head('<script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>', 'inline', 'footer');
+    $js = array(
+      'chartbeat' => array(
+        'uid' => (int) $uid,
+        'domain' => variable_get('chartbeat_domain', ''),
+        'useCanonical' => $canonical,
+        'noCookies' => $cookies,
+      ),
+    );
+
+    drupal_add_js($js, 'setting', 'footer');
+  }
+}
+
+/**
+ * Creates and adds the section details to the chartbeat publishing js options.
+ */
+function _chartbeat_publishing_sections_js_prepare() {
+  if (!chartbeat_js_allowed()) {
+    return;
+  }
+
+  if (!chartbeat_publishing_sections_enabled()) {
+    return;
+  }
+
+  $sections = chartbeat_publishing_get_sections();
+  if (!empty($sections)) {
+    $sections = implode(',', $sections);
+    drupal_add_js(array(
+      'chartbeat' => array(
+        'sections' => $sections,
+      )), 'setting', 'footer');
+  }
+}
+
+/**
+ * Creates and adds the author details to the chartbeat publishing js options.
+ */
+function _chartbeat_publishing_authors_js_prepare() {
+  if (!chartbeat_js_allowed()) {
+    return;
+  }
+
+  if (!chartbeat_publishing_authors_enabled()) {
+    return;
+  }
+
+  $authors = chartbeat_publishing_get_authors();
+  if (!empty($authors)) {
+    $authors = implode(',', $authors);
+    drupal_add_js(array(
+      'chartbeat' => array(
+        'authors' => $authors,
+      )), 'setting', 'footer');
+  }
+}
+
+/**
+ * Tests whether or not this request was an Ajax request.
+ *
+ * Uses a comparison between `_SERVER['HTTP_X_REQUESTED]` and `xmlhttprequest`.
+ *
+ * @returns bool
+ *   Returns true if the request was an 'assumed' ajax, otherwise false.
+ */
+function _chartbeat_is_ajax_request() {
+  return strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+}
