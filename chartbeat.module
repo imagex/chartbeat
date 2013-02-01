@@ -86,17 +86,6 @@ function chartbeat_init() {
   $cookies = variable_get('chartbeat_cookies', '0');
   $cookies = !empty($cookies) ? FALSE : TRUE;
 
-  // Handler for Publishing Sections setting.
-  $page = menu_get_object();
-  if (is_object($page) && $page->nid) {
-    $sections = _chartbeat_publishing_sections_load_terms($page->nid);
-    $author = user_load($page->uid)->name;
-  }
-  else {
-    $sections = array();
-    $authors = NULL;
-  }
-
   if (is_numeric($uid)) {
     // Add the header script to start the timer.
     drupal_add_html_head(array(
@@ -112,17 +101,10 @@ function chartbeat_init() {
       'noCookies' => $cookies,
     );
 
-    if (!empty($sections)) {
-      $settings['sections'] = $sections;
-    }
-    if (!empty($author)) {
-      $settings['authors'] = $author;
-    }
-
     drupal_add_js(array(
       'chartbeat' => $settings,
       ),
-    'setting');
+    array('type' => 'setting', 'cache' => FALSE));
   }
 
   drupal_add_css(drupal_get_path('module', 'chartbeat') . '/chartbeat.css');
@@ -308,7 +290,7 @@ function chartbeat_block_list_alter(&$blocks) {
 /**
  * Implements hook_page_alter().
  */
-function chartbeat_page_alter(&$page) {
+function chartbeat_page_build(&$page) {
   if (chartbeat_js_allowed()) {
     _chartbeat_publishing_authors_js_prepare();
     _chartbeat_publishing_sections_js_prepare();
@@ -563,7 +545,10 @@ function _chartbeat_publishing_authors_js_prepare() {
     drupal_add_js(array(
       'chartbeat' => array(
         'sections' => $sections,
-      )), 'setting');
+      )), array(
+        'type' => 'setting',
+        'scope' => 'footer',
+        'cache' => FALSE));
   }
 }
 
@@ -588,6 +573,7 @@ function _chartbeat_publishing_sections_js_prepare() {
       )),
       array(
         'type' => 'setting',
-        'scope' => 'footer'));
+        'scope' => 'footer',
+        'cache' => FALSE));
   }
 }
