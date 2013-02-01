@@ -124,6 +124,8 @@ function chartbeat_init() {
       ),
     'setting');
   }
+
+  drupal_add_css(drupal_get_path('module', 'chartbeat') . '/chartbeat.css');
 }
 
 /**
@@ -224,7 +226,7 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
  */
 function chartbeat_block_info() {
   $blocks['chartbeat-dashboard'] = array(
-    'info' => t('Chartbeat dashboard iframe'),
+    'info' => t('Chartbeat Dashboard'),
     'cache' => DRUPAL_NO_CACHE,
     'properties' => array(
       'administrative' => TRUE,
@@ -253,52 +255,39 @@ function chartbeat_block_view($delta = '') {
 }
 
 /**
- * [_chartbeat_dashboard_view description].
+ * Builds the chartbeat quickstats site total widget.
  *
- * @return [type]
- *   [description]
+ * @return array
+ *   Returns the renderable content array.
  */
 function _chartbeat_dashboard_view() {
-  $api = variable_get('chartbeat_api_key', FALSE);
-  $url = variable_get('chartbeat_domain', '');
+  if (chartbeat_is_enabled()) {
+    $api = variable_get('chartbeat_api_key', FALSE);
+    $url = variable_get('chartbeat_domain', '');
 
-  if (!empty($api) && !empty($url)) {
-    $var = <<<EOT
-        <div id="chartbeat-widget"></div>
-        <script src='http://static.chartbeat.com/js/sitewidgets/sitetotal.js' type='text/javascript'></script>
-        <script type='text/javascript'>
-        (function() {
-            var config = {
-                'api': 'http://api.chartbeat.com/live/quickstats/v3/?apikey=$api&host=$url',
-                'element': 'chartbeat-widget',
-            };
-
-            new SiteTotal(config);
-        })();
-        </script>
-        <div class="clearfix"></div>
+    if (!empty($api) && !empty($url)) {
+      $js = <<<EOT
+  (function() {
+    var config = {
+      'api': 'http://api.chartbeat.com/live/quickstats/v3/?apikey=$api&host=$url',
+      'element': 'chartbeat-widget-sitetotal',
+    };
+    new SiteTotal(config);
+  })();
 EOT;
-        /*
-          Old top pages widget; currently not working.
+      drupal_add_js('http://static.chartbeat.com/js/sitewidgets/sitetotal.js', 'external');
+      drupal_add_js($js, array('scope' => 'footer', 'type' => 'inline'));
 
-        <div id="nd3219623"></div>
-        <script src type></script>
-        <script src="http://static.chartbeat.com/js/sitewidgets/topwidget.js"
-          type="text/javascript" language="javascript"></script>
-        <script type="text/javascript" language="javascript">
-        new topwidget("$api", "$url" , "nd3219623", "", null);
-        </script>
-        <div class="clearfix"></div>
-        */
-    $content = array(
-      '#type' => 'markup',
-      '#markup' => $var,
-    );
+      $content = array(
+        '#type' => 'markup',
+        '#markup' => '<div id="chartbeat-widget-sitetotal" class="chartbeat-dashboard-widget"></div>',
+      );
+    }
   }
   else {
     $content = array(
       '#type' => 'markup',
-      '#markup' => 'Pages cannot be retrieved at this time.',
+      '#markup' => t('<span class="alert">@message</span>', array('@message' => 'Pages cannot be retrieved at this time.')),
     );
   }
   return $content;
@@ -324,17 +313,17 @@ function chartbeat_page_alter(&$page) {
     _chartbeat_publishing_authors_js_prepare();
     _chartbeat_publishing_sections_js_prepare();
 
-  $uid = variable_get('chartbeat_uid', '');
-  if (!empty($uid)) {
-    // Make sure we're outputting a user ID instead of a user name.
-    if (!is_numeric($uid)) {
-      drupal_set_message(t('Your <em>Chartbeat User ID</em> must be a number.
-        You can locate it within step two of adding a new website to track at
-        <a href="@chartbeat">Chartbeat</a>.',
-        array('@chartbeat' => 'http://chartbeat.com')), 'warning', FALSE);
-      return;
-    }
-    $output = <<<EOT
+    $uid = variable_get('chartbeat_uid', '');
+    if (!empty($uid)) {
+      // Make sure we're outputting a user ID instead of a user name.
+      if (!is_numeric($uid)) {
+        drupal_set_message(t('Your <em>Chartbeat User ID</em> must be a number.
+          You can locate it within step two of adding a new website to track at
+          <a href="@chartbeat">Chartbeat</a>.',
+          array('@chartbeat' => 'http://chartbeat.com')), 'warning', FALSE);
+        return;
+      }
+      $output = <<<EOT
 <script type="text/javascript">
   var _sf_async_config=Drupal.settings.chartbeat;
   (function(){
@@ -354,9 +343,8 @@ function chartbeat_page_alter(&$page) {
   })();
 </script>
 EOT;
-    $page['page_bottom']['chartbeat'] = array('#markup' => $output);
-  }
-
+      $page['page_bottom']['chartbeat'] = array('#markup' => $output);
+    }
   }
 }
 
@@ -409,6 +397,20 @@ function &chartbeat_publishing_get_sections($reset = FALSE) {
   }
 
   return $sections;
+}
+
+/**
+ * Checks whether or not chartbeat module is enabled.
+ *
+ * Essentially this method simply tests to ensure that the api key
+ * and domain settings are set. This will assist in ensuring that
+ * we can perform various api requests, etc.
+ *
+ * @return bool
+ *   Returns true if api key and domain are set, otherwise false.
+ */
+function chartbeat_is_enabled($with_domain = TRUE) {
+  return (bool) (variable_get('chartbeat_api_key', FALSE)) && (variable_get('chartbeat_domain', FALSE));
 }
 
 /**
