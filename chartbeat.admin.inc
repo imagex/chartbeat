@@ -62,6 +62,7 @@ function chartbeat_admin_settings() {
   $form['chartbeat_publishing_options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Chartbeat Publishing Options'),
+    '#description' => t('These options are available only for Chartbeat Publishing accounts. For more information, visit <a href="@url">Chartbeat Publishing</a>.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -70,7 +71,7 @@ function chartbeat_admin_settings() {
   $form['chartbeat_publishing_options']['chartbeat_sections_enable'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable sections'),
-    '#description' => !module_exists('taxonomy') ? t('The taxonomy module must be enabled to use sections. After enabling taxonomy, you will be able to use section tracking.') : (t('Enable section tracking. See <a href="@groups">here</a> for more information.', array(
+    '#description' => !module_exists('taxonomy') ? t('The taxonomy module must be enabled to use sections. After enabling the taxonomy module, you will be able to use Chartbeat section tracking.') : (t('Enable section tracking. See <a href="@groups">here</a> for more information.', array(
       '@groups' => 'http://chartbeat.com/docs/configuration_variables/#groups',
     ))),
     '#default_value' => module_exists('taxonomy') ? $sections_enabled : FALSE,
@@ -88,7 +89,7 @@ function chartbeat_admin_settings() {
     $form['chartbeat_publishing_options']['chartbeat_sections_wrapper'] = array(
       '#type' => 'fieldset',
       '#title' => t('Taxonomy Vocabularies'),
-      '#description' => !module_exists('taxonomy') ? t('The taxonomy module must be enabled to use sections.') : (!$sections_enabled ? t('You must enable sections support to select taxonomy vocabularies.') : t('Select the taxonomy vocabularies you would like to provide section support for.')),
+      '#description' => !module_exists('taxonomy') ? t('The taxonomy module must be enabled to use sections.') : (!$sections_enabled ? t('You must enable sections support to select taxonomy vocabularies.') : t('Select which taxonomy vocabularies will be tracked as sections.')),
       '#collapsible' => FALSE,
       '#collapsed' => FALSE,
       '#prefix' => '<div id="chartbeat-sections-taxonomy-vocab-wrapper">',
@@ -143,7 +144,23 @@ function chartbeat_dashboard_page() {
   $url = variable_get('chartbeat_domain', '');
   $key = variable_get('chartbeat_api_key', '');
   if (!empty($url) && !empty($key)) {
-    $content = "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>";
+    $content = "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=\"700\" width=\"100%\"></iframe>";
+  }
+  else {
+    $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
+  }
+
+  return $content;
+}
+
+/**
+ * Page callback for the dashboard iframe embed page.
+ */
+function chartbeat_publishing_dashboard_page() {
+  $url = variable_get('chartbeat_domain', '');
+  $key = variable_get('chartbeat_api_key', '');
+  if (!empty($url) && !empty($key)) {
+    $content = "<iframe src=\"http://chartbeat.com/publishing/dashboard/?url=$url&k=$key&slim=1\" height=\"700\" width=\"100%\"></iframe>";
   }
   else {
     $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
