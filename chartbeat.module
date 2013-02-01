@@ -61,11 +61,12 @@ function chartbeat_permission() {
  * Checks if the publishing dashboard should be accessible.
  *
  * This check is performed by ensuring that the user has administer
- * chartbeat settings permissions, in addition to checking if one of the two or both
- * publishing features are enabled.
+ * chartbeat settings permissions, in addition to checking if one
+ * of the two or both publishing features are enabled.
  *
  * @returns bool
- *   Returns true if the publishing dashboard should/can be accessed, otherwise returns false.
+ *   Returns true if the publishing dashboard should/can be accessed,
+ *     otherwise returns false.
  */
 function chartbeat_publishing_dashboard_permission() {
   return user_access('administer chartbeat settings') && chartbeat_publishing_is_enabled();
@@ -252,7 +253,7 @@ function chartbeat_block_view($delta = '') {
 }
 
 /**
- * [_chartbeat_dashboard_view description]
+ * [_chartbeat_dashboard_view description].
  *
  * @return [type]
  *   [description]
@@ -322,7 +323,7 @@ function chartbeat_page_alter(&$page) {
   if (chartbeat_js_allowed()) {
     _chartbeat_publishing_authors_js_prepare();
     _chartbeat_publishing_sections_js_prepare();
-  
+
   $uid = variable_get('chartbeat_uid', '');
   if (!empty($uid)) {
     // Make sure we're outputting a user ID instead of a user name.
@@ -355,7 +356,7 @@ function chartbeat_page_alter(&$page) {
 EOT;
     $page['page_bottom']['chartbeat'] = array('#markup' => $output);
   }
-  
+
   }
 }
 
@@ -414,7 +415,8 @@ function &chartbeat_publishing_get_sections($reset = FALSE) {
  * Checks whether or not chartbeat publishing options are enabled.
  *
  * @return bool
- *   Returns true if one or both of the publishing options are enabled, otherwise false.
+ *   Returns true if one or both of the publishing options are
+ *     enabled, otherwise false.
  */
 function chartbeat_publishing_is_enabled() {
   return chartbeat_publishing_sections_enabled() || chartbeat_publishing_authors_enabled();
@@ -511,7 +513,7 @@ function _chartbeat_load_taxonomy_terms_for_node($nid, $vid = NULL) {
   $query->join('taxonomy_index', 'ti', 'td.tid = ti.tid');
   $query->join('node', 'n', 'ti.nid = n.nid');
   $query->condition('n.nid', $nid, '=');
-  if( $vid ) {
+  if ($vid) {
     if (is_array($vid)) {
       $query->havingCondition('td.vid', $vid, 'IN');
     }
@@ -558,7 +560,7 @@ function _chartbeat_publishing_authors_js_prepare() {
     $sections = implode(',', $sections);
     drupal_add_js(array(
       'chartbeat' => array(
-        'sections' => $sections
+        'sections' => $sections,
       )), 'setting');
   }
 }
@@ -580,7 +582,7 @@ function _chartbeat_publishing_sections_js_prepare() {
     $authors = implode(',', $authors);
     drupal_add_js(array(
       'chartbeat' => array(
-        'authors' => $authors
+        'authors' => $authors,
       )),
       array(
         'type' => 'setting',

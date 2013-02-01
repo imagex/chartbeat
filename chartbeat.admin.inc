@@ -127,7 +127,7 @@ function chartbeat_dashboard_page() {
   $url = variable_get('chartbeat_domain', '');
   $key = variable_get('chartbeat_api_key', '');
   if (!empty($url) && !empty($key)) {
-    $content = "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1000></iframe>";
+    $content = "<iframe src=\"http://chartbeat.com/dashboard/?url=$url&k=$key&slim=1\" height=\"700\" width=\"100%\"></iframe>";
   }
   else {
     $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
@@ -147,7 +147,7 @@ function chartbeat_publishing_dashboard_page() {
   $url = variable_get('chartbeat_domain', '');
   $key = variable_get('chartbeat_api_key', '');
   if (!empty($url) && !empty($key)) {
-    $content = "<iframe src=\"http://chartbeat.com/publishing/dashboard/?url=$url&k=$key&slim=1\" height=700 width=1020></iframe>";
+    $content = "<iframe src=\"http://chartbeat.com/publishing/dashboard/?url=$url&k=$key&slim=1\" height=\"700\" width=\"100%\"></iframe>";
   }
   else {
     $content = 'Notice: You must save the domain and API key on the settings page to see the dashboard.';
