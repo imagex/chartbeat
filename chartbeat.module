@@ -6,7 +6,6 @@
  * Contains menu, permission, init, and page alter hook implementations.
  */
 
-
 /**
  * Implements hook_menu().
  */
@@ -38,8 +37,8 @@ function chartbeat_menu() {
     'title' => 'Chartbeat Publishing Dashboard',
     'description' => 'the dashboard for your Chartbeat Publishing account',
     'page callback' => 'chartbeat_publishing_dashboard_page',
-    // 'page arguments' => array('chartbeat_dashboard_form'),
-    'access arguments' => array('administer chartbeat settings'),
+    // 'access arguments' => array('administer chartbeat settings'),
+    'access callback' => 'chartbeat_publishing_dashboard_permission',
     'type' => MENU_LOCAL_TASK,
     'file' => 'chartbeat.admin.inc',
     'weight' => 1,
@@ -56,6 +55,21 @@ function chartbeat_permission() {
       'title' => t('Administer Chartbeat settings'),
     ),
   );
+}
+
+/**
+ * Checks if the publishing dashboard should be accessible.
+ *
+ * This check is performed by ensuring that the user has administer
+ * chartbeat settings permissions, in addition to checking if one
+ * of the two or both publishing features are enabled.
+ *
+ * @returns bool
+ *   Returns true if the publishing dashboard should/can be accessed,
+ *     otherwise returns false.
+ */
+function chartbeat_publishing_dashboard_permission() {
+  return user_access('administer chartbeat settings') && chartbeat_publishing_is_enabled();
 }
 
 /**
@@ -82,7 +96,6 @@ function chartbeat_init() {
     $sections = array();
     $authors = NULL;
   }
-
 
   if (is_numeric($uid)) {
     // Add the header script to start the timer.
@@ -116,7 +129,7 @@ function chartbeat_init() {
 /**
  * Helper function to get section names from associated taxonomy terms.
  *
- * @param integer $nid
+ * @param int $nid
  *   The node id of the page.
  *
  * @return string
@@ -208,10 +221,8 @@ function chartbeat_form_node_admin_content_alter(&$form, &$form_state) {
 
 /**
  * Implements hook_block_info().
- *
  */
 function chartbeat_block_info() {
-
   $blocks['chartbeat-dashboard'] = array(
     'info' => t('Chartbeat dashboard iframe'),
     'cache' => DRUPAL_NO_CACHE,
@@ -242,7 +253,7 @@ function chartbeat_block_view($delta = '') {
 }
 
 /**
- * [_chartbeat_dashboard_view description]
+ * [_chartbeat_dashboard_view description].
  *
  * @return [type]
  *   [description]
@@ -253,7 +264,7 @@ function _chartbeat_dashboard_view() {
 
   if (!empty($api) && !empty($url)) {
     $var = <<<EOT
-        <div id='chartbeat-widget'></div>
+        <div id="chartbeat-widget"></div>
         <script src='http://static.chartbeat.com/js/sitewidgets/sitetotal.js' type='text/javascript'></script>
         <script type='text/javascript'>
         (function() {
@@ -309,6 +320,10 @@ function chartbeat_block_list_alter(&$blocks) {
  * Implements hook_page_alter().
  */
 function chartbeat_page_alter(&$page) {
+  if (chartbeat_js_allowed()) {
+    _chartbeat_publishing_authors_js_prepare();
+    _chartbeat_publishing_sections_js_prepare();
+
   $uid = variable_get('chartbeat_uid', '');
   if (!empty($uid)) {
     // Make sure we're outputting a user ID instead of a user name.
@@ -340,5 +355,237 @@ function chartbeat_page_alter(&$page) {
 </script>
 EOT;
     $page['page_bottom']['chartbeat'] = array('#markup' => $output);
+  }
+
+  }
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function chartbeat_node_view($node, $view_mode, $langcode) {
+  if (chartbeat_publishing_sections_enabled()) {
+    $sections = variable_get('chartbeat_sections', '');
+    if (empty($sections)) {
+      return;
+    }
+
+    $taxonomy_terms = _chartbeat_load_taxonomy_terms_for_node($node->nid, $sections);
+    foreach ($taxonomy_terms as $term) {
+      chartbeat_publishing_add_section($term->name);
+    }
+  }
+
+  if (chartbeat_publishing_authors_enabled()) {
+    if ($u = user_load($node->uid)) {
+      chartbeat_publishing_add_author($u->name);
+    }
+  }
+}
+
+/**
+ * Is chartbeat publishing sections option enabled.
+ *
+ * @return bool
+ *   Returns true if the sections option is enabled, otherwise false.
+ */
+function chartbeat_publishing_sections_enabled() {
+  return (bool) variable_get('chartbeat_sections_enable', FALSE) && module_exists('taxonomy');
+}
+
+/**
+ * Gets the sections that have been added to be added at render.
+ *
+ * @param bool $reset
+ *   If true, the sections collection will be cleared.
+ * 
+ * @return array
+ *   Returns the array of currently added sections.
+ */
+function &chartbeat_publishing_get_sections($reset = FALSE) {
+  static $sections = array();
+  if ($reset) {
+    $sections = array();
+  }
+
+  return $sections;
+}
+
+/**
+ * Checks whether or not chartbeat publishing options are enabled.
+ *
+ * @return bool
+ *   Returns true if one or both of the publishing options are
+ *     enabled, otherwise false.
+ */
+function chartbeat_publishing_is_enabled() {
+  return chartbeat_publishing_sections_enabled() || chartbeat_publishing_authors_enabled();
+}
+
+/**
+ * Adds a section to the current page to be rendered and tracked.
+ *
+ * @param string $section_name
+ *   The section name.
+ * 
+ * @return bool
+ *   Returns true if the section was added, otherwise false.
+ */
+function chartbeat_publishing_add_section($section_name) {
+  if (!chartbeat_publishing_sections_enabled()) {
+    return FALSE;
+  }
+
+  $sections = &chartbeat_publishing_get_sections();
+  if (!in_array($section_name, $sections)) {
+    $sections[] = $section_name;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Is chartbeat publishing authors options enabled.
+ *
+ * @return bool
+ *   Returns true if the authors option is enabled, otherwise false.
+ */
+function chartbeat_publishing_authors_enabled() {
+  return (bool) variable_get('chartbeat_authors_enabled', FALSE);
+}
+
+/**
+ * Gets the authors that have been added to be added at render.
+ *
+ * @param bool $reset
+ *   If true, the authors collection will be cleared.
+ * 
+ * @return array
+ *   Returns the array of currently added authors.
+ */
+function &chartbeat_publishing_get_authors($reset = FALSE) {
+  static $authors = array();
+  if ($reset) {
+    $authors = array();
+  }
+
+  return $authors;
+}
+
+/**
+ * Adds an author to the current page to be rendered and tracked.
+ *
+ * @param string $author_name
+ *   The name of the author to add.
+ * 
+ * @return bool
+ *   Returns true if the author was added, otherwise false.
+ */
+function chartbeat_publishing_add_author($author_name) {
+  if (!chartbeat_publishing_authors_enabled()) {
+    return FALSE;
+  }
+
+  // TODO: Determine if there is a requirement for unique implementation.
+  // What if the two user's have the same name?
+  $authors = &chartbeat_publishing_get_authors();
+  if (!in_array($author_name, $authors)) {
+    $authors[] = $author_name;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Loads all taxonomy terms for a specified node id.
+ *
+ * @param int $nid
+ *   The node id to load the taxonomy terms for.
+ * @param mixed $vid
+ *   A single taxonomy vocab id or an array of vids to query agains.
+ *
+ * @return array
+ *   Returns an array of loaded taxonomy terms.
+ */
+function _chartbeat_load_taxonomy_terms_for_node($nid, $vid = NULL) {
+  $query = db_select('taxonomy_term_data', 'td');
+  $query->fields('td');
+  $query->join('taxonomy_index', 'ti', 'td.tid = ti.tid');
+  $query->join('node', 'n', 'ti.nid = n.nid');
+  $query->condition('n.nid', $nid, '=');
+  if ($vid) {
+    if (is_array($vid)) {
+      $query->havingCondition('td.vid', $vid, 'IN');
+    }
+    else {
+      $query->condition('td.vid', $vid, '=');
+    }
+  }
+
+  $terms = array();
+  foreach ($query->execute() as $row) {
+    $terms[$row->tid] = $row;
+  }
+
+  return $terms;
+}
+
+/**
+ * Checks if we are allowed to use chartbeat js.
+ *
+ * This is determined by checking whether or not the UID has been set.
+ * If it has been set, it must be a numeric value.
+ *
+ * @return bool
+ *   Returns true if js is allowed to be inserted, otherwise false.
+ */
+function chartbeat_js_allowed() {
+  return is_numeric(variable_get('chartbeat_uid', ''));
+}
+
+/**
+ * Creates and adds the section details to the chartbeat publishing js options.
+ */
+function _chartbeat_publishing_authors_js_prepare() {
+  if (!chartbeat_js_allowed()) {
+    return;
+  }
+
+  if (!chartbeat_publishing_sections_enabled()) {
+    return;
+  }
+
+  $sections = chartbeat_publishing_get_sections();
+  if (!empty($sections)) {
+    $sections = implode(',', $sections);
+    drupal_add_js(array(
+      'chartbeat' => array(
+        'sections' => $sections,
+      )), 'setting');
+  }
+}
+
+/**
+ * Creates and adds the author details to the chartbeat publishing js option.
+ */
+function _chartbeat_publishing_sections_js_prepare() {
+  if (!chartbeat_js_allowed()) {
+    return;
+  }
+
+  if (!chartbeat_publishing_authors_enabled()) {
+    return;
+  }
+
+  $authors = chartbeat_publishing_get_authors();
+  if (!empty($authors)) {
+    $authors = implode(',', $authors);
+    drupal_add_js(array(
+      'chartbeat' => array(
+        'authors' => $authors,
+      )),
+      array(
+        'type' => 'setting',
+        'scope' => 'footer'));
   }
 }
