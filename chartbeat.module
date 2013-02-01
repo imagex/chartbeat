@@ -32,10 +32,17 @@ function chartbeat_menu() {
   $items['admin/settings/chartbeat/dashboard'] = array(
     'title' => 'Chartbeat Dashboard',
     'description' => 'the dashboard for your Chartbeat site',
-    // 'page callback' => 'drupal_get_form',
-    // 'page arguments' => array('chartbeat_dashboard_form'),
     'page callback' => 'chartbeat_dashboard_page',
     'access arguments' => array('administer chartbeat settings'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'chartbeat.admin.inc',
+    'weight' => 1,
+  );
+  $items['admin/settings/chartbeat/publishing-dashboard'] = array(
+    'title' => 'Chartbeat Publishing Dashboard',
+    'description' => 'The dashboard for your Chartbeat Publishing account.',
+    'page callback' => 'chartbeat_publishing_dashboard_page',
+    'access callback' => 'chartbeat_publishing_dashboard_permission',
     'type' => MENU_LOCAL_TASK,
     'file' => 'chartbeat.admin.inc',
     'weight' => 1,
@@ -50,6 +57,21 @@ function chartbeat_perm() {
   return array(
     'administer chartbeat settings',
   );
+}
+
+/**
+ * Checks if the publishing dashboard should be accessible.
+ *
+ * This check is performed by ensuring that the user has administer
+ * chartbeat settings permissions, in addition to checking if one
+ * of the two or both publishing features are enabled.
+ *
+ * @returns bool
+ *   Returns true if the publishing dashboard should/can be accessed,
+ *     otherwise returns false.
+ */
+function chartbeat_publishing_dashboard_permission() {
+  return user_access('administer chartbeat settings') && chartbeat_publishing_is_enabled();
 }
 
 /**
@@ -138,7 +160,7 @@ function chartbeat_nodeapi($node, $op, $a3 = NULL, $a4 = NULL) {
  *   Returns true if the authors option is enabled, otherwise false.
  */
 function chartbeat_publishing_authors_enabled() {
-  return (bool) variable_get('chartbeat_authors_enabled', FALSE);
+  return (bool) variable_get('chartbeat_authors_enabled', FALSE) && module_exists('taxonomy');
 }
 
 /**
@@ -294,6 +316,17 @@ function chartbeat_prepare_js() {
 
     drupal_add_js($js, 'setting', 'footer');
   }
+}
+
+/**
+ * Checks whether or not chartbeat publishing options are enabled.
+ *
+ * @return bool
+ *   Returns true if one or both of the publishing options are
+ *     enabled, otherwise false.
+ */
+function chartbeat_publishing_is_enabled() {
+  return chartbeat_publishing_sections_enabled() || chartbeat_publishing_authors_enabled();
 }
 
 /**
