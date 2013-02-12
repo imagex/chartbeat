@@ -130,7 +130,7 @@ EOT;
 function chartbeat_nodeapi($node, $op, $a3 = NULL, $a4 = NULL) {
   switch ($op) {
     case 'view':
-      if (chartbeat_publishing_sections_enabled()) {
+      if ((drupal_is_front_page() && chartbeat_allow_sections_on_front() && chartbeat_publishing_sections_enabled()) || (!drupal_is_front_page() && chartbeat_publishing_sections_enabled())) {
         $sections = variable_get('chartbeat_sections', '');
         if (!$sections) {
           return;
@@ -144,7 +144,7 @@ function chartbeat_nodeapi($node, $op, $a3 = NULL, $a4 = NULL) {
         }
       }
 
-      if (chartbeat_publishing_authors_enabled()) {
+      if ((drupal_is_front_page() && chartbeat_allow_authors_on_front() && chartbeat_publishing_authors_enabled()) || (!drupal_is_front_page() && chartbeat_publishing_authors_enabled())) {
         $u = user_load($node->uid);
         chartbeat_publishing_add_author($u->name);
       }
@@ -277,6 +277,30 @@ function _chartbeat_ahah_init_helper() {
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
 
   return $form;
+}
+
+/**
+ * Checks if sections setting is to be sent when on front page.
+ *
+ * This is statically coded return false for possible future enhancement.
+ *
+ * @return bool
+ *   Returns false.
+ */
+function chartbeat_allow_sections_on_front() {
+  return FALSE;
+}
+
+/**
+ * Checks if authors setting is to be sent when on front page.
+ *
+ * This is statically coded return false for possible future enhancement.
+ *
+ * @return bool
+ *   Returns false.
+ */
+function chartbeat_allow_authors_on_front() {
+  return FALSE;
 }
 
 /**
