@@ -27,7 +27,6 @@ function chartbeat_menu() {
     'title' => 'Chartbeat Dashboard',
     'description' => 'the dashboard for your Chartbeat site',
     'page callback' => 'chartbeat_dashboard_page',
-    // 'page arguments' => array('chartbeat_dashboard_form'),
     'access arguments' => array('administer chartbeat settings'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'chartbeat.admin.inc',
@@ -334,7 +333,7 @@ EOT;
  * Implements hook_node_view().
  */
 function chartbeat_node_view($node, $view_mode, $langcode) {
-  if ((drupal_is_front_page() && chartbeat_allow_sections_on_front() && chartbeat_publishing_sections_enabled()) || (!drupal_is_front_page() && chartbeat_publishing_sections_enabled())) {
+  if (node_is_page($node) && chartbeat_publishing_sections_enabled()) {
     $sections = variable_get('chartbeat_sections', '');
     if (empty($sections)) {
       return;
@@ -346,7 +345,7 @@ function chartbeat_node_view($node, $view_mode, $langcode) {
     }
   }
 
-  if ((drupal_is_front_page() && chartbeat_allow_authors_on_front() && chartbeat_publishing_authors_enabled()) || (!drupal_is_front_page() && chartbeat_publishing_authors_enabled())) {
+  if (node_is_page($node) && chartbeat_publishing_authors_enabled()) {
     if ($u = user_load($node->uid)) {
       chartbeat_publishing_add_author($u->name);
     }
