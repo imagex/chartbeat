@@ -130,7 +130,7 @@ EOT;
 function chartbeat_nodeapi($node, $op, $a3 = NULL, $a4 = NULL) {
   switch ($op) {
     case 'view':
-      if ((drupal_is_front_page() && chartbeat_allow_sections_on_front() && chartbeat_publishing_sections_enabled()) || (!drupal_is_front_page() && chartbeat_publishing_sections_enabled())) {
+      if (TRUE === $a4 && chartbeat_publishing_sections_enabled()) {
         $sections = variable_get('chartbeat_sections', '');
         if (!$sections) {
           return;
@@ -144,7 +144,7 @@ function chartbeat_nodeapi($node, $op, $a3 = NULL, $a4 = NULL) {
         }
       }
 
-      if ((drupal_is_front_page() && chartbeat_allow_authors_on_front() && chartbeat_publishing_authors_enabled()) || (!drupal_is_front_page() && chartbeat_publishing_authors_enabled())) {
+      if (TRUE === $a4 && chartbeat_publishing_authors_enabled()) {
         $u = user_load($node->uid);
         chartbeat_publishing_add_author($u->name);
       }
