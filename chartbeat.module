@@ -85,7 +85,8 @@ function chartbeat_init() {
   $cookies = variable_get('chartbeat_cookies', '0');
   $cookies = !empty($cookies) ? FALSE : TRUE;
 
-  if (is_numeric($uid)) {
+  // if (is_numeric($uid)) {
+  if (chartbeat_js_allowed()) {
     // Add the header script to start the timer.
     drupal_add_html_head(array(
       '#tag' => 'script',
@@ -242,7 +243,7 @@ function chartbeat_block_view($delta = '') {
  *   Returns the renderable content array.
  */
 function _chartbeat_dashboard_view() {
-  if (chartbeat_is_enabled()) {
+  if (chartbeat_js_allowed(TRUE) && chartbeat_is_enabled()) {
     $api = variable_get('chartbeat_api_key', FALSE);
     $url = variable_get('chartbeat_domain', '');
 
@@ -522,8 +523,36 @@ function _chartbeat_load_taxonomy_terms_for_node($nid, $vid = NULL) {
  * @return bool
  *   Returns true if js is allowed to be inserted, otherwise false.
  */
-function chartbeat_js_allowed() {
-  return is_numeric(variable_get('chartbeat_uid', '')) && 'admin' != arg(0);
+function chartbeat_js_allowed($ignore_path = FALSE) {
+  if (is_numeric(variable_get('chartbeat_uid', ''))) {
+    $allowed = TRUE;
+    
+    if (!$ignore_path) {
+      $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+      if (drupal_match_path($path, implode("\r", chartbeat_paths_not_tracked()))) {
+        $allowed = FALSE;
+      }
+    }
+    
+    return $allowed;
+  }
+  
+  return FALSE;
+}
+
+/**
+ * Returns an array of paths to not include javascript tracking code.
+ *
+ * @returns array
+ *   Returns an array of paths.
+ */
+function chartbeat_paths_not_tracked() {
+  return array(
+    'admin*',
+    'node/add*',
+    'node/*/edit*',
+    'node/*/delete*'
+  );
 }
 
 /**
