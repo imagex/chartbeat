@@ -313,7 +313,7 @@ function chartbeat_allow_authors_on_front() {
  *   Returns true if js is allowed to be inserted, otherwise false.
  */
 function chartbeat_js_allowed() {
-  return is_numeric(variable_get('chartbeat_uid', ''));
+  return is_numeric(variable_get('chartbeat_uid', '')) && 'admin' != arg(0);
 }
 
 /**
