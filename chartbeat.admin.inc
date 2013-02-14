@@ -15,12 +15,19 @@ function chartbeat_admin_settings() {
       Chartbeat</a> account.', array('@chartbeat' => 'http://chartbeat.com')),
     '#default_value' => variable_get('chartbeat_uid', ''),
   );
+
+  $domain = variable_get('chartbeat_domain', _chartbeat_get_default_domain());
+  if (empty($domain)) {
+    $domain = _chartbeat_get_default_domain();
+  }
+
   $form['chartbeat_domain'] = array(
     '#type' => 'textfield',
     '#title' => t('Domain'),
     '#description' => t('The domain to be reporting from on your account.'),
-    '#default_value' => variable_get('chartbeat_domain', ''),
+    '#default_value' => $domain,
   );
+
   $form['chartbeat_options_advanced'] = array(
     '#type' => 'fieldset',
     '#title' => t('Advanced Settings'),
