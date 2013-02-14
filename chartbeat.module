@@ -298,7 +298,7 @@ function chartbeat_page_build(&$page) {
     if (!empty($uid)) {
       // Make sure we're outputting a user ID instead of a user name.
       if (!is_numeric($uid)) {
-        drupal_set_message(t('Your <em>Chartbeat User ID</em> must be a number.
+        drupal_set_message(t('Your <em>Chartbeat Account ID</em> must be a number.
           You can locate it within step two of adding a new website to track at
           <a href="@chartbeat">Chartbeat</a>.',
           array('@chartbeat' => 'http://chartbeat.com')), 'warning', FALSE);
