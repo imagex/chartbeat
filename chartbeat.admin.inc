@@ -100,7 +100,7 @@ function chartbeat_admin_settings() {
       $form['chartbeat_publishing_options']['chartbeat_sections_wrapper']['chartbeat_sections'] = array(
         '#type' => 'checkboxes',
         '#options' => _chartbeat_taxonomy_array_format(taxonomy_get_vocabularies()),
-        '#default_value' => variable_get('chartbeat_sections', ''),
+        '#default_value' => variable_get('chartbeat_sections', array()),
       );
     }
   }
