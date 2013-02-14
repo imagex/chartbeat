@@ -313,7 +313,33 @@ function chartbeat_allow_authors_on_front() {
  *   Returns true if js is allowed to be inserted, otherwise false.
  */
 function chartbeat_js_allowed() {
-  return is_numeric(variable_get('chartbeat_uid', '')) && 'admin' != arg(0);
+  if (is_numeric(variable_get('chartbeat_uid', ''))) {
+    $allowed = TRUE;
+    
+    $path = drupal_get_path_alias($_GET['q']);
+    if (drupal_match_path($path, implode("\r", chartbeat_paths_not_tracked()))) {
+      $allowed = FALSE;
+    }
+    
+    return $allowed;
+  }
+  
+  return FALSE;
+}
+
+/**
+ * Returns an array of paths to not include javascript tracking code.
+ *
+ * @returns array
+ *   Returns an array of paths.
+ */
+function chartbeat_paths_not_tracked() {
+  return array(
+    'admin*',
+    'node/add*',
+    'node/%/edit*',
+    'node/%/delete*'
+  );
 }
 
 /**
