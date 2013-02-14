@@ -408,3 +408,22 @@ function _chartbeat_publishing_authors_js_prepare() {
 function _chartbeat_is_ajax_request() {
   return strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 }
+
+/**
+ * Returns the default value used for the domain in settings.
+ *
+ * @returns string
+ *   Returns the default installation url's host.
+ */
+function _chartbeat_get_default_domain() {
+  static $domain = NULL;
+
+  if (NULL === $domain) {
+    global $base_url;
+
+    $pieces = parse_url($base_url);
+    $domain = isset($pieces['host']) ? $pieces['host'] : '';
+  }
+
+  return $domain;
+}
