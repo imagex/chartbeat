@@ -10,18 +10,23 @@
 function chartbeat_admin_settings($form, &$form_state) {
   $form['chartbeat_uid'] = array(
     '#type' => 'textfield',
-    '#title' => t('User ID'),
-    '#description' => t('The user ID associated with your <a href="@chartbeat">
-      Chartbeat</a> account. You can locate it within step two of adding a new
-      website to track at ChartBeat.',
-      array('@chartbeat' => 'http://chartbeat.com')),
+    '#title' => t('Account ID'),
+    '#description' => t('In order to activate Chartbeat, you must enter your Account ID. You can
+find yours <a href="@chartbeat">here</a>.',
+      array('@chartbeat' => 'http://chartbeat.com/drupal')),
     '#default_value' => variable_get('chartbeat_uid', ''),
   );
+
+  $domain = variable_get('chartbeat_domain', _chartbeat_get_default_domain());
+  if (empty($domain)) {
+    $domain = _chartbeat_get_default_domain();
+  }
+
   $form['chartbeat_domain'] = array(
     '#type' => 'textfield',
     '#title' => t('Domain'),
-    '#description' => t('The domain to be reporting from on your account.'),
-    '#default_value' => variable_get('chartbeat_domain', ''),
+    '#description' => t('The domain name of the site you want to track.'),
+    '#default_value' => $domain,
   );
   $form['chartbeat_options_advanced'] = array(
     '#type' => 'fieldset',
@@ -55,10 +60,8 @@ function chartbeat_admin_settings($form, &$form_state) {
   $form['chartbeat_options_live']['chartbeat_api_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Chartbeat API Key'),
-    '#description' => t('To enable live stats, you need to add an API key. if
-      you don\'t have one, go <a href="@api">here</a> and click the "Add new
-       API" button in the right corner of the table.',
-       array('@api' => 'http://chartbeat.com/apikeys/')),
+    '#description' => t('To enable live stats in your Drupal dashboard, please enter your API key. You can find yours <a href="@api">here</a>.',
+       array('@api' => 'http://chartbeat.com/drupal/')),
     '#default_value' => variable_get('chartbeat_api_key', ''),
   );
   $form['chartbeat_publishing'] = array(
