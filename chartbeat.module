@@ -600,3 +600,22 @@ function _chartbeat_publishing_sections_js_prepare() {
         'cache' => FALSE));
   }
 }
+
+/**
+ * Returns the default value used for the domain in settings.
+ *
+ * @returns string
+ *   Returns the default installation url's host.
+ */
+function _chartbeat_get_default_domain() {
+  static $domain = NULL;
+
+  if (NULL === $domain) {
+    global $base_url;
+
+    $pieces = parse_url($base_url);
+    $domain = isset($pieces['host']) ? $pieces['host'] : '';
+  }
+
+  return $domain;
+}
